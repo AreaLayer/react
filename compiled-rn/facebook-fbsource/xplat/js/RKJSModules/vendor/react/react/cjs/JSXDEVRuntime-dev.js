@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<2132372086be69b8a6fc2192367ad38f>>
+ * @generated SignedSource<<4eebeb25e9593b7ff9c90aaff1b06eb0>>
  */
 
 "use strict";
@@ -184,64 +184,64 @@ __DEV__ &&
       previousDispatcher = ReactSharedInternals.H;
       ReactSharedInternals.H = null;
       disableLogs();
-      var RunInRootFrame = {
-        DetermineComponentFrameRoot: function () {
-          try {
-            if (construct) {
-              var Fake = function () {
-                throw Error();
-              };
-              Object.defineProperty(Fake.prototype, "props", {
-                set: function () {
+      try {
+        var RunInRootFrame = {
+          DetermineComponentFrameRoot: function () {
+            try {
+              if (construct) {
+                var Fake = function () {
                   throw Error();
+                };
+                Object.defineProperty(Fake.prototype, "props", {
+                  set: function () {
+                    throw Error();
+                  }
+                });
+                if ("object" === typeof Reflect && Reflect.construct) {
+                  try {
+                    Reflect.construct(Fake, []);
+                  } catch (x) {
+                    var control = x;
+                  }
+                  Reflect.construct(fn, [], Fake);
+                } else {
+                  try {
+                    Fake.call();
+                  } catch (x$0) {
+                    control = x$0;
+                  }
+                  fn.call(Fake.prototype);
                 }
-              });
-              if ("object" === typeof Reflect && Reflect.construct) {
-                try {
-                  Reflect.construct(Fake, []);
-                } catch (x) {
-                  var control = x;
-                }
-                Reflect.construct(fn, [], Fake);
               } else {
                 try {
-                  Fake.call();
-                } catch (x$0) {
-                  control = x$0;
+                  throw Error();
+                } catch (x$1) {
+                  control = x$1;
                 }
-                fn.call(Fake.prototype);
+                (Fake = fn()) &&
+                  "function" === typeof Fake.catch &&
+                  Fake.catch(function () {});
               }
-            } else {
-              try {
-                throw Error();
-              } catch (x$1) {
-                control = x$1;
-              }
-              (Fake = fn()) &&
-                "function" === typeof Fake.catch &&
-                Fake.catch(function () {});
+            } catch (sample) {
+              if (sample && control && "string" === typeof sample.stack)
+                return [sample.stack, control.stack];
             }
-          } catch (sample) {
-            if (sample && control && "string" === typeof sample.stack)
-              return [sample.stack, control.stack];
+            return [null, null];
           }
-          return [null, null];
-        }
-      };
-      RunInRootFrame.DetermineComponentFrameRoot.displayName =
-        "DetermineComponentFrameRoot";
-      var namePropDescriptor = Object.getOwnPropertyDescriptor(
-        RunInRootFrame.DetermineComponentFrameRoot,
-        "name"
-      );
-      namePropDescriptor &&
-        namePropDescriptor.configurable &&
-        Object.defineProperty(
+        };
+        RunInRootFrame.DetermineComponentFrameRoot.displayName =
+          "DetermineComponentFrameRoot";
+        var namePropDescriptor = Object.getOwnPropertyDescriptor(
           RunInRootFrame.DetermineComponentFrameRoot,
-          "name",
-          { value: "DetermineComponentFrameRoot" }
+          "name"
         );
-      try {
+        namePropDescriptor &&
+          namePropDescriptor.configurable &&
+          Object.defineProperty(
+            RunInRootFrame.DetermineComponentFrameRoot,
+            "name",
+            { value: "DetermineComponentFrameRoot" }
+          );
         var _RunInRootFrame$Deter =
             RunInRootFrame.DetermineComponentFrameRoot(),
           sampleStack = _RunInRootFrame$Deter[0],
@@ -250,54 +250,58 @@ __DEV__ &&
           var sampleLines = sampleStack.split("\n"),
             controlLines = controlStack.split("\n");
           for (
-            sampleStack = _RunInRootFrame$Deter = 0;
-            _RunInRootFrame$Deter < sampleLines.length &&
-            !sampleLines[_RunInRootFrame$Deter].includes(
+            _RunInRootFrame$Deter = namePropDescriptor = 0;
+            namePropDescriptor < sampleLines.length &&
+            !sampleLines[namePropDescriptor].includes(
+              "DetermineComponentFrameRoot"
+            );
+
+          )
+            namePropDescriptor++;
+          for (
+            ;
+            _RunInRootFrame$Deter < controlLines.length &&
+            !controlLines[_RunInRootFrame$Deter].includes(
               "DetermineComponentFrameRoot"
             );
 
           )
             _RunInRootFrame$Deter++;
-          for (
-            ;
-            sampleStack < controlLines.length &&
-            !controlLines[sampleStack].includes("DetermineComponentFrameRoot");
-
-          )
-            sampleStack++;
           if (
-            _RunInRootFrame$Deter === sampleLines.length ||
-            sampleStack === controlLines.length
+            namePropDescriptor === sampleLines.length ||
+            _RunInRootFrame$Deter === controlLines.length
           )
             for (
-              _RunInRootFrame$Deter = sampleLines.length - 1,
-                sampleStack = controlLines.length - 1;
-              1 <= _RunInRootFrame$Deter &&
-              0 <= sampleStack &&
-              sampleLines[_RunInRootFrame$Deter] !== controlLines[sampleStack];
+              namePropDescriptor = sampleLines.length - 1,
+                _RunInRootFrame$Deter = controlLines.length - 1;
+              1 <= namePropDescriptor &&
+              0 <= _RunInRootFrame$Deter &&
+              sampleLines[namePropDescriptor] !==
+                controlLines[_RunInRootFrame$Deter];
 
             )
-              sampleStack--;
+              _RunInRootFrame$Deter--;
           for (
             ;
-            1 <= _RunInRootFrame$Deter && 0 <= sampleStack;
-            _RunInRootFrame$Deter--, sampleStack--
+            1 <= namePropDescriptor && 0 <= _RunInRootFrame$Deter;
+            namePropDescriptor--, _RunInRootFrame$Deter--
           )
             if (
-              sampleLines[_RunInRootFrame$Deter] !== controlLines[sampleStack]
+              sampleLines[namePropDescriptor] !==
+              controlLines[_RunInRootFrame$Deter]
             ) {
-              if (1 !== _RunInRootFrame$Deter || 1 !== sampleStack) {
+              if (1 !== namePropDescriptor || 1 !== _RunInRootFrame$Deter) {
                 do
                   if (
-                    (_RunInRootFrame$Deter--,
-                    sampleStack--,
-                    0 > sampleStack ||
-                      sampleLines[_RunInRootFrame$Deter] !==
-                        controlLines[sampleStack])
+                    (namePropDescriptor--,
+                    _RunInRootFrame$Deter--,
+                    0 > _RunInRootFrame$Deter ||
+                      sampleLines[namePropDescriptor] !==
+                        controlLines[_RunInRootFrame$Deter])
                   ) {
                     var _frame =
                       "\n" +
-                      sampleLines[_RunInRootFrame$Deter].replace(
+                      sampleLines[namePropDescriptor].replace(
                         " at new ",
                         " at "
                       );
@@ -308,7 +312,7 @@ __DEV__ &&
                       componentFrameCache.set(fn, _frame);
                     return _frame;
                   }
-                while (1 <= _RunInRootFrame$Deter && 0 <= sampleStack);
+                while (1 <= namePropDescriptor && 0 <= _RunInRootFrame$Deter);
               }
               break;
             }
@@ -360,13 +364,6 @@ __DEV__ &&
       var dispatcher = ReactSharedInternals.A;
       return null === dispatcher ? null : dispatcher.getOwner();
     }
-    function hasValidRef(config) {
-      if (hasOwnProperty.call(config, "ref")) {
-        var getter = Object.getOwnPropertyDescriptor(config, "ref").get;
-        if (getter && getter.isReactWarning) return !1;
-      }
-      return void 0 !== config.ref;
-    }
     function hasValidKey(config) {
       if (hasOwnProperty.call(config, "key")) {
         var getter = Object.getOwnPropertyDescriptor(config, "key").get;
@@ -399,8 +396,8 @@ __DEV__ &&
       componentName = this.props.ref;
       return void 0 !== componentName ? componentName : null;
     }
-    function ReactElement(type, key, _ref, self, source, owner, props) {
-      _ref = props.ref;
+    function ReactElement(type, key, self, source, owner, props) {
+      self = props.ref;
       type = {
         $$typeof: REACT_ELEMENT_TYPE,
         type: type,
@@ -408,7 +405,7 @@ __DEV__ &&
         props: props,
         _owner: owner
       };
-      null !== (void 0 !== _ref ? _ref : null)
+      null !== (void 0 !== self ? self : null)
         ? Object.defineProperty(type, "ref", {
             enumerable: !1,
             get: elementRefGetterWithDeprecationWarning
@@ -527,27 +524,19 @@ __DEV__ &&
         (checkKeyStringCoercion(maybeKey), (children = "" + maybeKey));
       hasValidKey(config) &&
         (checkKeyStringCoercion(config.key), (children = "" + config.key));
-      hasValidRef(config);
       if ("key" in config) {
         maybeKey = {};
         for (var propName in config)
           "key" !== propName && (maybeKey[propName] = config[propName]);
       } else maybeKey = config;
       children &&
-        ((config =
+        defineKeyPropWarningGetter(
+          maybeKey,
           "function" === typeof type
             ? type.displayName || type.name || "Unknown"
-            : type),
-        children && defineKeyPropWarningGetter(maybeKey, config));
-      return ReactElement(
-        type,
-        children,
-        null,
-        self,
-        source,
-        getOwner(),
-        maybeKey
-      );
+            : type
+        );
+      return ReactElement(type, children, self, source, getOwner(), maybeKey);
     }
     function validateChildKeys(node, parentType) {
       if (
