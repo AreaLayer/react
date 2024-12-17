@@ -14,6 +14,7 @@
 __DEV__ &&
   (function () {
     function performWorkUntilDeadline() {
+      enableRequestPaint && (needsPaint = !1);
       if (isMessageLoopRunning) {
         var currentTime = exports.unstable_now();
         startTime = currentTime;
@@ -35,11 +36,10 @@ __DEV__ &&
                   advanceTimers(currentTime);
                   for (
                     currentTask = peek(taskQueue);
+                    null !== currentTask &&
                     !(
-                      null === currentTask ||
-                      isSchedulerPaused ||
-                      (currentTask.expirationTime > currentTime &&
-                        shouldYieldToHost())
+                      currentTask.expirationTime > currentTime &&
+                      shouldYieldToHost()
                     );
 
                   ) {
@@ -228,7 +228,11 @@ __DEV__ &&
         }
     }
     function shouldYieldToHost() {
-      return exports.unstable_now() - startTime < frameInterval ? !1 : !0;
+      return enableRequestPaint && needsPaint
+        ? !0
+        : exports.unstable_now() - startTime < frameInterval
+          ? !1
+          : !0;
     }
     function requestHostCallback() {
       isMessageLoopRunning ||
@@ -243,11 +247,8 @@ __DEV__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart &&
       __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-    var dynamicFeatureFlags = require("SchedulerFeatureFlags"),
-      userBlockingPriorityTimeout =
-        dynamicFeatureFlags.userBlockingPriorityTimeout,
-      normalPriorityTimeout = dynamicFeatureFlags.normalPriorityTimeout,
-      lowPriorityTimeout = dynamicFeatureFlags.lowPriorityTimeout,
+    var enableRequestPaint =
+        require("SchedulerFeatureFlags").enableRequestPaint,
       runIdCounter = 0,
       mainThreadIdCounter = 0,
       eventLogSize = 0,
@@ -273,12 +274,12 @@ __DEV__ &&
     var taskQueue = [],
       timerQueue = [],
       taskIdCounter = 1,
-      isSchedulerPaused = !1,
       currentTask = null,
       currentPriorityLevel = 3,
       isPerformingWork = !1,
       isHostCallbackScheduled = !1,
       isHostTimeoutScheduled = !1,
+      needsPaint = !1,
       localSetTimeout = "function" === typeof setTimeout ? setTimeout : null,
       localClearTimeout =
         "function" === typeof clearTimeout ? clearTimeout : null,
@@ -293,9 +294,9 @@ __DEV__ &&
         localSetImmediate(performWorkUntilDeadline);
       };
     else if ("undefined" !== typeof MessageChannel) {
-      dynamicFeatureFlags = new MessageChannel();
-      var port = dynamicFeatureFlags.port2;
-      dynamicFeatureFlags.port1.onmessage = performWorkUntilDeadline;
+      var channel = new MessageChannel(),
+        port = channel.port2;
+      channel.port1.onmessage = performWorkUntilDeadline;
       schedulePerformWorkUntilDeadline = function () {
         port.postMessage(null);
       };
@@ -303,7 +304,7 @@ __DEV__ &&
       schedulePerformWorkUntilDeadline = function () {
         localSetTimeout(performWorkUntilDeadline, 0);
       };
-    dynamicFeatureFlags = {
+    channel = {
       startLoggingProfilingEvents: function () {
         eventLogSize = 131072;
         eventLogBuffer = new ArrayBuffer(4 * eventLogSize);
@@ -316,7 +317,7 @@ __DEV__ &&
     exports.unstable_ImmediatePriority = 1;
     exports.unstable_LowPriority = 4;
     exports.unstable_NormalPriority = 3;
-    exports.unstable_Profiling = dynamicFeatureFlags;
+    exports.unstable_Profiling = channel;
     exports.unstable_UserBlockingPriority = 2;
     exports.unstable_cancelCallback = function (task) {
       if (task.isQueued) {
@@ -327,7 +328,6 @@ __DEV__ &&
       task.callback = null;
     };
     exports.unstable_continueExecution = function () {
-      isSchedulerPaused = !1;
       isHostCallbackScheduled ||
         isPerformingWork ||
         ((isHostCallbackScheduled = !0), requestHostCallback());
@@ -363,10 +363,10 @@ __DEV__ &&
         currentPriorityLevel = previousPriorityLevel;
       }
     };
-    exports.unstable_pauseExecution = function () {
-      isSchedulerPaused = !0;
+    exports.unstable_pauseExecution = function () {};
+    exports.unstable_requestPaint = function () {
+      enableRequestPaint && (needsPaint = !0);
     };
-    exports.unstable_requestPaint = function () {};
     exports.unstable_runWithPriority = function (priorityLevel, eventHandler) {
       switch (priorityLevel) {
         case 1:
@@ -404,16 +404,16 @@ __DEV__ &&
           var timeout = -1;
           break;
         case 2:
-          timeout = userBlockingPriorityTimeout;
+          timeout = 250;
           break;
         case 5:
           timeout = 1073741823;
           break;
         case 4:
-          timeout = lowPriorityTimeout;
+          timeout = 1e4;
           break;
         default:
-          timeout = normalPriorityTimeout;
+          timeout = 5e3;
       }
       timeout = options + timeout;
       priorityLevel = {

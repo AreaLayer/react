@@ -57,6 +57,7 @@ var dynamicFeatureFlags = require("ReactFeatureFlags"),
     dynamicFeatureFlags.disableDefaultPropsExceptForClasses,
   enableRenderableContext = dynamicFeatureFlags.enableRenderableContext,
   enableTransitionTracing = dynamicFeatureFlags.enableTransitionTracing,
+  enableUseResourceEffectHook = dynamicFeatureFlags.enableUseResourceEffectHook,
   renameElementSymbol = dynamicFeatureFlags.renameElementSymbol,
   REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
   REACT_ELEMENT_TYPE = renameElementSymbol
@@ -75,11 +76,9 @@ var dynamicFeatureFlags = require("ReactFeatureFlags"),
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy"),
   REACT_SCOPE_TYPE = Symbol.for("react.scope"),
-  REACT_DEBUG_TRACING_MODE_TYPE = Symbol.for("react.debug_trace_mode"),
   REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
   REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
   REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
-  REACT_MEMO_CACHE_SENTINEL = Symbol.for("react.memo_cache_sentinel"),
   MAYBE_ITERATOR_SYMBOL = Symbol.iterator,
   isArrayImpl = Array.isArray;
 function murmurhash3_32_gc(key, seed) {
@@ -2678,16 +2677,16 @@ function createRenderState(resumableState, generateStaticMarkup) {
       "\x3c/script>"
     );
   bootstrapScriptContent = idPrefix + "P:";
-  var JSCompiler_object_inline_segmentPrefix_1617 = idPrefix + "S:";
+  var JSCompiler_object_inline_segmentPrefix_1614 = idPrefix + "S:";
   idPrefix += "B:";
-  var JSCompiler_object_inline_preconnects_1631 = new Set(),
-    JSCompiler_object_inline_fontPreloads_1632 = new Set(),
-    JSCompiler_object_inline_highImagePreloads_1633 = new Set(),
-    JSCompiler_object_inline_styles_1634 = new Map(),
-    JSCompiler_object_inline_bootstrapScripts_1635 = new Set(),
-    JSCompiler_object_inline_scripts_1636 = new Set(),
-    JSCompiler_object_inline_bulkPreloads_1637 = new Set(),
-    JSCompiler_object_inline_preloads_1638 = {
+  var JSCompiler_object_inline_preconnects_1628 = new Set(),
+    JSCompiler_object_inline_fontPreloads_1629 = new Set(),
+    JSCompiler_object_inline_highImagePreloads_1630 = new Set(),
+    JSCompiler_object_inline_styles_1631 = new Map(),
+    JSCompiler_object_inline_bootstrapScripts_1632 = new Set(),
+    JSCompiler_object_inline_scripts_1633 = new Set(),
+    JSCompiler_object_inline_bulkPreloads_1634 = new Set(),
+    JSCompiler_object_inline_preloads_1635 = {
       images: new Map(),
       stylesheets: new Map(),
       scripts: new Map(),
@@ -2724,7 +2723,7 @@ function createRenderState(resumableState, generateStaticMarkup) {
       scriptConfig.moduleScriptResources[href] = null;
       scriptConfig = [];
       pushLinkImpl(scriptConfig, props);
-      JSCompiler_object_inline_bootstrapScripts_1635.add(scriptConfig);
+      JSCompiler_object_inline_bootstrapScripts_1632.add(scriptConfig);
       bootstrapChunks.push('<script src="', escapeTextForBrowser(src));
       "string" === typeof integrity &&
         bootstrapChunks.push('" integrity="', escapeTextForBrowser(integrity));
@@ -2765,7 +2764,7 @@ function createRenderState(resumableState, generateStaticMarkup) {
         (props.moduleScriptResources[scriptConfig] = null),
         (props = []),
         pushLinkImpl(props, integrity),
-        JSCompiler_object_inline_bootstrapScripts_1635.add(props),
+        JSCompiler_object_inline_bootstrapScripts_1632.add(props),
         bootstrapChunks.push(
           '<script type="module" src="',
           escapeTextForBrowser(i)
@@ -2780,7 +2779,7 @@ function createRenderState(resumableState, generateStaticMarkup) {
         bootstrapChunks.push('" async="">\x3c/script>');
   return {
     placeholderPrefix: bootstrapScriptContent,
-    segmentPrefix: JSCompiler_object_inline_segmentPrefix_1617,
+    segmentPrefix: JSCompiler_object_inline_segmentPrefix_1614,
     boundaryPrefix: idPrefix,
     startInlineScript: "<script>",
     htmlChunks: null,
@@ -2800,14 +2799,14 @@ function createRenderState(resumableState, generateStaticMarkup) {
     charsetChunks: [],
     viewportChunks: [],
     hoistableChunks: [],
-    preconnects: JSCompiler_object_inline_preconnects_1631,
-    fontPreloads: JSCompiler_object_inline_fontPreloads_1632,
-    highImagePreloads: JSCompiler_object_inline_highImagePreloads_1633,
-    styles: JSCompiler_object_inline_styles_1634,
-    bootstrapScripts: JSCompiler_object_inline_bootstrapScripts_1635,
-    scripts: JSCompiler_object_inline_scripts_1636,
-    bulkPreloads: JSCompiler_object_inline_bulkPreloads_1637,
-    preloads: JSCompiler_object_inline_preloads_1638,
+    preconnects: JSCompiler_object_inline_preconnects_1628,
+    fontPreloads: JSCompiler_object_inline_fontPreloads_1629,
+    highImagePreloads: JSCompiler_object_inline_highImagePreloads_1630,
+    styles: JSCompiler_object_inline_styles_1631,
+    bootstrapScripts: JSCompiler_object_inline_bootstrapScripts_1632,
+    scripts: JSCompiler_object_inline_scripts_1633,
+    bulkPreloads: JSCompiler_object_inline_bulkPreloads_1634,
+    preloads: JSCompiler_object_inline_preloads_1635,
     stylesToHoist: !1,
     generateStaticMarkup: generateStaticMarkup
   };
@@ -3256,9 +3255,6 @@ function unwrapThenable(thenable) {
   null === thenableState && (thenableState = []);
   return trackUsedThenable(thenableState, thenable, index);
 }
-function unsupportedRefresh() {
-  throw Error(formatProdErrorMessage(393));
-}
 function noop$1() {}
 var HooksDispatcher = {
   readContext: function (context) {
@@ -3328,28 +3324,21 @@ var HooksDispatcher = {
     if (void 0 === getServerSnapshot) throw Error(formatProdErrorMessage(407));
     return getServerSnapshot();
   },
-  useCacheRefresh: function () {
-    return unsupportedRefresh;
+  useOptimistic: function (passthrough) {
+    resolveCurrentlyRenderingComponent();
+    return [passthrough, unsupportedSetOptimisticState];
   },
-  useEffectEvent: function () {
-    return throwOnUseEffectEventCall;
-  },
-  useMemoCache: function (size) {
-    for (var data = Array(size), i = 0; i < size; i++)
-      data[i] = REACT_MEMO_CACHE_SENTINEL;
-    return data;
-  },
+  useActionState: useActionState,
+  useFormState: useActionState,
   useHostTransitionStatus: function () {
     resolveCurrentlyRenderingComponent();
     return sharedNotPendingObject;
   },
-  useOptimistic: function (passthrough) {
-    resolveCurrentlyRenderingComponent();
-    return [passthrough, unsupportedSetOptimisticState];
+  useEffectEvent: function () {
+    return throwOnUseEffectEventCall;
   }
 };
-HooksDispatcher.useFormState = useActionState;
-HooksDispatcher.useActionState = useActionState;
+enableUseResourceEffectHook && (HooksDispatcher.useResourceEffect = noop$1);
 var currentResumableState = null,
   DefaultAsyncDispatcher = {
     getCacheForType: function () {
@@ -3512,7 +3501,7 @@ function describeComponentStackByType(type) {
   if ("string" === typeof type) return describeBuiltInComponentFrame(type);
   if ("function" === typeof type)
     return type.prototype && type.prototype.isReactComponent
-      ? ((type = describeNativeComponentFrame(type, !0)), type)
+      ? describeNativeComponentFrame(type, !0)
       : describeNativeComponentFrame(type, !1);
   if ("object" === typeof type && null !== type) {
     switch (type.$$typeof) {
@@ -4120,7 +4109,6 @@ function renderElement(request, task, keyPath, type, props, ref) {
   else {
     switch (type) {
       case REACT_LEGACY_HIDDEN_TYPE:
-      case REACT_DEBUG_TRACING_MODE_TYPE:
       case REACT_STRICT_MODE_TYPE:
       case REACT_PROFILER_TYPE:
       case REACT_FRAGMENT_TYPE:
@@ -5822,4 +5810,4 @@ exports.renderToString = function (children, options) {
     'The server used "renderToString" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to "renderToReadableStream" which supports Suspense on the server'
   );
 };
-exports.version = "19.0.0-www-modern-7283a213-20241206";
+exports.version = "19.1.0-www-modern-d4287258-20241217";

@@ -260,13 +260,11 @@ module.exports = function ($$$config) {
         return describeBuiltInComponentFrame("SuspenseList");
       case 0:
       case 15:
-        return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+        return describeNativeComponentFrame(fiber.type, !1);
       case 11:
-        return (
-          (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-        );
+        return describeNativeComponentFrame(fiber.type.render, !1);
       case 1:
-        return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+        return describeNativeComponentFrame(fiber.type, !0);
       default:
         return "";
     }
@@ -661,6 +659,46 @@ module.exports = function ($$$config) {
         (root[index$9] |= entangledLanes);
       rootEntangledLanes &= ~lane;
     }
+  }
+  function getBumpedLaneForHydrationByLane(lane) {
+    switch (lane) {
+      case 2:
+        lane = 1;
+        break;
+      case 8:
+        lane = 4;
+        break;
+      case 32:
+        lane = 16;
+        break;
+      case 128:
+      case 256:
+      case 512:
+      case 1024:
+      case 2048:
+      case 4096:
+      case 8192:
+      case 16384:
+      case 32768:
+      case 65536:
+      case 131072:
+      case 262144:
+      case 524288:
+      case 1048576:
+      case 2097152:
+      case 4194304:
+      case 8388608:
+      case 16777216:
+      case 33554432:
+        lane = 64;
+        break;
+      case 268435456:
+        lane = 134217728;
+        break;
+      default:
+        lane = 0;
+    }
+    return lane;
   }
   function getTransitionsForLanes(root, lanes) {
     if (!enableTransitionTracing) return null;
@@ -1742,29 +1780,8 @@ module.exports = function ($$$config) {
     }
     return workInProgressHook;
   }
-  function unstable_useContextWithBailout(context, select) {
-    if (null === select) var JSCompiler_temp = readContext(context);
-    else {
-      JSCompiler_temp = currentlyRenderingFiber;
-      var value = isPrimaryRenderer
-        ? context._currentValue
-        : context._currentValue2;
-      context = {
-        context: context,
-        memoizedValue: value,
-        next: null,
-        select: select,
-        lastSelectedValue: select(value)
-      };
-      if (null === lastContextDependency) {
-        if (null === JSCompiler_temp) throw Error(formatProdErrorMessage(308));
-        lastContextDependency = context;
-        JSCompiler_temp.dependencies = { lanes: 0, firstContext: context };
-        JSCompiler_temp.flags |= 524288;
-      } else lastContextDependency = lastContextDependency.next = context;
-      JSCompiler_temp = value;
-    }
-    return JSCompiler_temp;
+  function createFunctionComponentUpdateQueue() {
+    return { lastEffect: null, events: null, stores: null, memoCache: null };
   }
   function useThenable(thenable) {
     var index = thenableIndexCounter$1;
@@ -4683,7 +4700,7 @@ module.exports = function ($$$config) {
         )
           return (
             isSuspenseInstanceFallback(nextInstance)
-              ? (workInProgress.lanes = 16)
+              ? (workInProgress.lanes = 32)
               : (workInProgress.lanes = 536870912),
             null
           );
@@ -4833,62 +4850,25 @@ module.exports = function ($$$config) {
         didReceiveUpdate || JSCompiler_temp)
       ) {
         JSCompiler_temp = workInProgressRoot;
-        if (null !== JSCompiler_temp) {
-          nextProps = renderLanes & -renderLanes;
-          if (0 !== (nextProps & 42)) nextProps = 1;
-          else
-            switch (nextProps) {
-              case 2:
-                nextProps = 1;
-                break;
-              case 8:
-                nextProps = 4;
-                break;
-              case 32:
-                nextProps = 16;
-                break;
-              case 128:
-              case 256:
-              case 512:
-              case 1024:
-              case 2048:
-              case 4096:
-              case 8192:
-              case 16384:
-              case 32768:
-              case 65536:
-              case 131072:
-              case 262144:
-              case 524288:
-              case 1048576:
-              case 2097152:
-              case 4194304:
-              case 8388608:
-              case 16777216:
-              case 33554432:
-                nextProps = 64;
-                break;
-              case 268435456:
-                nextProps = 134217728;
-                break;
-              default:
-                nextProps = 0;
-            }
-          nextProps =
+        if (
+          null !== JSCompiler_temp &&
+          ((nextProps = renderLanes & -renderLanes),
+          (nextProps =
+            0 !== (nextProps & 42)
+              ? 1
+              : getBumpedLaneForHydrationByLane(nextProps)),
+          (nextProps =
             0 !== (nextProps & (JSCompiler_temp.suspendedLanes | renderLanes))
               ? 0
-              : nextProps;
-          if (
-            0 !== nextProps &&
-            nextProps !== JSCompiler_temp$jscomp$0.retryLane
-          )
-            throw (
-              ((JSCompiler_temp$jscomp$0.retryLane = nextProps),
-              enqueueConcurrentRenderForLane(current, nextProps),
-              scheduleUpdateOnFiber(JSCompiler_temp, current, nextProps),
-              SelectiveHydrationException)
-            );
-        }
+              : nextProps),
+          0 !== nextProps && nextProps !== JSCompiler_temp$jscomp$0.retryLane)
+        )
+          throw (
+            ((JSCompiler_temp$jscomp$0.retryLane = nextProps),
+            enqueueConcurrentRenderForLane(current, nextProps),
+            scheduleUpdateOnFiber(JSCompiler_temp, current, nextProps),
+            SelectiveHydrationException)
+          );
         isSuspenseInstancePending(nextInstance) ||
           renderDidSuspendDelayIfPossible();
         workInProgress = retrySuspenseComponentWithoutHydrating(
@@ -5940,23 +5920,8 @@ module.exports = function ($$$config) {
         a: for (; null !== list; ) {
           var dependency = list;
           list = fiber;
-          var i = 0;
-          b: for (; i < contexts.length; i++)
+          for (var i = 0; i < contexts.length; i++)
             if (dependency.context === contexts[i]) {
-              var select = dependency.select;
-              if (
-                null != select &&
-                null != dependency.lastSelectedValue &&
-                !checkIfSelectedContextValuesChanged(
-                  dependency.lastSelectedValue,
-                  select(
-                    isPrimaryRenderer
-                      ? dependency.context._currentValue
-                      : dependency.context._currentValue2
-                  )
-                )
-              )
-                continue b;
               list.lanes |= renderLanes;
               dependency = list.alternate;
               null !== dependency && (dependency.lanes |= renderLanes);
@@ -6043,17 +6008,6 @@ module.exports = function ($$$config) {
       );
     workInProgress.flags |= 262144;
   }
-  function checkIfSelectedContextValuesChanged(
-    oldComparedValue,
-    newComparedValue
-  ) {
-    if (isArrayImpl(oldComparedValue) && isArrayImpl(newComparedValue)) {
-      if (oldComparedValue.length !== newComparedValue.length) return !0;
-      for (var i = 0; i < oldComparedValue.length; i++)
-        if (!objectIs(newComparedValue[i], oldComparedValue[i])) return !0;
-    } else throw Error(formatProdErrorMessage(541));
-    return !1;
-  }
   function checkIfContextChanged(currentDependencies) {
     for (
       currentDependencies = currentDependencies.firstContext;
@@ -6061,22 +6015,13 @@ module.exports = function ($$$config) {
 
     ) {
       var context = currentDependencies.context;
-      context = isPrimaryRenderer
-        ? context._currentValue
-        : context._currentValue2;
-      var oldValue = currentDependencies.memoizedValue;
       if (
-        null != currentDependencies.select &&
-        null != currentDependencies.lastSelectedValue
-      ) {
-        if (
-          checkIfSelectedContextValuesChanged(
-            currentDependencies.lastSelectedValue,
-            currentDependencies.select(context)
-          )
+        !objectIs(
+          isPrimaryRenderer ? context._currentValue : context._currentValue2,
+          currentDependencies.memoizedValue
         )
-          return !0;
-      } else if (!objectIs(context, oldValue)) return !0;
+      )
+        return !0;
       currentDependencies = currentDependencies.next;
     }
     return !1;
@@ -11134,12 +11079,6 @@ module.exports = function ($$$config) {
               }),
               key
             );
-        case REACT_DEBUG_TRACING_MODE_TYPE:
-          if (enableDebugTracing) {
-            fiberTag = 8;
-            mode |= 4;
-            break;
-          }
         default:
           if ("object" === typeof type && null !== type)
             switch (type.$$typeof) {
@@ -11411,7 +11350,6 @@ module.exports = function ($$$config) {
       dynamicFeatureFlags.disableDefaultPropsExceptForClasses,
     disableSchedulerTimeoutInWorkLoop =
       dynamicFeatureFlags.disableSchedulerTimeoutInWorkLoop,
-    enableDebugTracing = dynamicFeatureFlags.enableDebugTracing,
     enableDeferRootSchedulingToMicrotask =
       dynamicFeatureFlags.enableDeferRootSchedulingToMicrotask,
     enableDO_NOT_USE_disableStrictPassiveEffect =
@@ -11451,7 +11389,6 @@ module.exports = function ($$$config) {
     REACT_MEMO_TYPE = Symbol.for("react.memo"),
     REACT_LAZY_TYPE = Symbol.for("react.lazy"),
     REACT_SCOPE_TYPE = Symbol.for("react.scope"),
-    REACT_DEBUG_TRACING_MODE_TYPE = Symbol.for("react.debug_trace_mode"),
     REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
     REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
     REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
@@ -11669,39 +11606,35 @@ module.exports = function ($$$config) {
     localIdCounter = 0,
     thenableIndexCounter$1 = 0,
     thenableState$1 = null,
-    globalClientIdCounter = 0;
-  var createFunctionComponentUpdateQueue = function () {
-    return { lastEffect: null, events: null, stores: null, memoCache: null };
-  };
-  var ContextOnlyDispatcher = {
-    readContext: readContext,
-    use: use,
-    useCallback: throwInvalidHookError,
-    useContext: throwInvalidHookError,
-    useEffect: throwInvalidHookError,
-    useImperativeHandle: throwInvalidHookError,
-    useLayoutEffect: throwInvalidHookError,
-    useInsertionEffect: throwInvalidHookError,
-    useMemo: throwInvalidHookError,
-    useReducer: throwInvalidHookError,
-    useRef: throwInvalidHookError,
-    useState: throwInvalidHookError,
-    useDebugValue: throwInvalidHookError,
-    useDeferredValue: throwInvalidHookError,
-    useTransition: throwInvalidHookError,
-    useSyncExternalStore: throwInvalidHookError,
-    useId: throwInvalidHookError
-  };
-  ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-  ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
+    globalClientIdCounter = 0,
+    ContextOnlyDispatcher = {
+      readContext: readContext,
+      use: use,
+      useCallback: throwInvalidHookError,
+      useContext: throwInvalidHookError,
+      useEffect: throwInvalidHookError,
+      useImperativeHandle: throwInvalidHookError,
+      useLayoutEffect: throwInvalidHookError,
+      useInsertionEffect: throwInvalidHookError,
+      useMemo: throwInvalidHookError,
+      useReducer: throwInvalidHookError,
+      useRef: throwInvalidHookError,
+      useState: throwInvalidHookError,
+      useDebugValue: throwInvalidHookError,
+      useDeferredValue: throwInvalidHookError,
+      useTransition: throwInvalidHookError,
+      useSyncExternalStore: throwInvalidHookError,
+      useId: throwInvalidHookError,
+      useHostTransitionStatus: throwInvalidHookError,
+      useFormState: throwInvalidHookError,
+      useActionState: throwInvalidHookError,
+      useOptimistic: throwInvalidHookError,
+      useMemoCache: throwInvalidHookError,
+      useCacheRefresh: throwInvalidHookError
+    };
   ContextOnlyDispatcher.useEffectEvent = throwInvalidHookError;
   enableUseResourceEffectHook &&
     (ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError);
-  ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-  ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-  ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-  ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
-  ContextOnlyDispatcher.unstable_useContextWithBailout = throwInvalidHookError;
   var HooksDispatcherOnMount = {
     readContext: readContext,
     use: use,
@@ -11867,51 +11800,49 @@ module.exports = function ($$$config) {
             ":");
       return (hook.memoizedState = identifierPrefix);
     },
+    useHostTransitionStatus: useHostTransitionStatus,
+    useFormState: mountActionState,
+    useActionState: mountActionState,
+    useOptimistic: function (passthrough) {
+      var hook = mountWorkInProgressHook();
+      hook.memoizedState = hook.baseState = passthrough;
+      var queue = {
+        pending: null,
+        lanes: 0,
+        dispatch: null,
+        lastRenderedReducer: null,
+        lastRenderedState: null
+      };
+      hook.queue = queue;
+      hook = dispatchOptimisticSetState.bind(
+        null,
+        currentlyRenderingFiber$1,
+        !0,
+        queue
+      );
+      queue.dispatch = hook;
+      return [passthrough, hook];
+    },
+    useMemoCache: useMemoCache,
     useCacheRefresh: function () {
       return (mountWorkInProgressHook().memoizedState = refreshCache.bind(
         null,
         currentlyRenderingFiber$1
       ));
+    },
+    useEffectEvent: function (callback) {
+      var hook = mountWorkInProgressHook(),
+        ref = { impl: callback };
+      hook.memoizedState = ref;
+      return function () {
+        if (0 !== (executionContext & 2))
+          throw Error(formatProdErrorMessage(440));
+        return ref.impl.apply(void 0, arguments);
+      };
     }
-  };
-  HooksDispatcherOnMount.useMemoCache = useMemoCache;
-  HooksDispatcherOnMount.useEffectEvent = function (callback) {
-    var hook = mountWorkInProgressHook(),
-      ref = { impl: callback };
-    hook.memoizedState = ref;
-    return function () {
-      if (0 !== (executionContext & 2))
-        throw Error(formatProdErrorMessage(440));
-      return ref.impl.apply(void 0, arguments);
-    };
   };
   enableUseResourceEffectHook &&
     (HooksDispatcherOnMount.useResourceEffect = mountResourceEffect);
-  HooksDispatcherOnMount.useHostTransitionStatus = useHostTransitionStatus;
-  HooksDispatcherOnMount.useFormState = mountActionState;
-  HooksDispatcherOnMount.useActionState = mountActionState;
-  HooksDispatcherOnMount.useOptimistic = function (passthrough) {
-    var hook = mountWorkInProgressHook();
-    hook.memoizedState = hook.baseState = passthrough;
-    var queue = {
-      pending: null,
-      lanes: 0,
-      dispatch: null,
-      lastRenderedReducer: null,
-      lastRenderedState: null
-    };
-    hook.queue = queue;
-    hook = dispatchOptimisticSetState.bind(
-      null,
-      currentlyRenderingFiber$1,
-      !0,
-      queue
-    );
-    queue.dispatch = hook;
-    return [passthrough, hook];
-  };
-  HooksDispatcherOnMount.unstable_useContextWithBailout =
-    unstable_useContextWithBailout;
   var HooksDispatcherOnUpdate = {
     readContext: readContext,
     use: use,
@@ -11948,22 +11879,20 @@ module.exports = function ($$$config) {
       ];
     },
     useSyncExternalStore: updateSyncExternalStore,
-    useId: updateId
+    useId: updateId,
+    useHostTransitionStatus: useHostTransitionStatus,
+    useFormState: updateActionState,
+    useActionState: updateActionState,
+    useOptimistic: function (passthrough, reducer) {
+      var hook = updateWorkInProgressHook();
+      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+    },
+    useMemoCache: useMemoCache,
+    useCacheRefresh: updateRefresh
   };
-  HooksDispatcherOnUpdate.useCacheRefresh = updateRefresh;
-  HooksDispatcherOnUpdate.useMemoCache = useMemoCache;
   HooksDispatcherOnUpdate.useEffectEvent = updateEvent;
   enableUseResourceEffectHook &&
     (HooksDispatcherOnUpdate.useResourceEffect = updateResourceEffect);
-  HooksDispatcherOnUpdate.useHostTransitionStatus = useHostTransitionStatus;
-  HooksDispatcherOnUpdate.useFormState = updateActionState;
-  HooksDispatcherOnUpdate.useActionState = updateActionState;
-  HooksDispatcherOnUpdate.useOptimistic = function (passthrough, reducer) {
-    var hook = updateWorkInProgressHook();
-    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-  };
-  HooksDispatcherOnUpdate.unstable_useContextWithBailout =
-    unstable_useContextWithBailout;
   var HooksDispatcherOnRerender = {
     readContext: readContext,
     use: use,
@@ -12002,25 +11931,23 @@ module.exports = function ($$$config) {
       ];
     },
     useSyncExternalStore: updateSyncExternalStore,
-    useId: updateId
+    useId: updateId,
+    useHostTransitionStatus: useHostTransitionStatus,
+    useFormState: rerenderActionState,
+    useActionState: rerenderActionState,
+    useOptimistic: function (passthrough, reducer) {
+      var hook = updateWorkInProgressHook();
+      if (null !== currentHook)
+        return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+      hook.baseState = passthrough;
+      return [passthrough, hook.queue.dispatch];
+    },
+    useMemoCache: useMemoCache,
+    useCacheRefresh: updateRefresh
   };
-  HooksDispatcherOnRerender.useCacheRefresh = updateRefresh;
-  HooksDispatcherOnRerender.useMemoCache = useMemoCache;
   HooksDispatcherOnRerender.useEffectEvent = updateEvent;
   enableUseResourceEffectHook &&
     (HooksDispatcherOnRerender.useResourceEffect = updateResourceEffect);
-  HooksDispatcherOnRerender.useHostTransitionStatus = useHostTransitionStatus;
-  HooksDispatcherOnRerender.useFormState = rerenderActionState;
-  HooksDispatcherOnRerender.useActionState = rerenderActionState;
-  HooksDispatcherOnRerender.useOptimistic = function (passthrough, reducer) {
-    var hook = updateWorkInProgressHook();
-    if (null !== currentHook)
-      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-    hook.baseState = passthrough;
-    return [passthrough, hook.queue.dispatch];
-  };
-  HooksDispatcherOnRerender.unstable_useContextWithBailout =
-    unstable_useContextWithBailout;
   var thenableState = null,
     thenableIndexCounter = 0,
     reconcileChildFibers = createChildReconciler(!0),
@@ -12234,8 +12161,9 @@ module.exports = function ($$$config) {
   };
   exports.attemptHydrationAtCurrentPriority = function (fiber) {
     if (13 === fiber.tag) {
-      var lane = requestUpdateLane(),
-        root = enqueueConcurrentRenderForLane(fiber, lane);
+      var lane = requestUpdateLane();
+      lane = getBumpedLaneForHydrationByLane(lane);
+      var root = enqueueConcurrentRenderForLane(fiber, lane);
       null !== root && scheduleUpdateOnFiber(root, fiber, lane);
       markRetryLaneIfNotHydrated(fiber, lane);
     }
@@ -12335,12 +12263,14 @@ module.exports = function ($$$config) {
     initialChildren.context = getContextForSubtree(null);
     containerInfo = initialChildren.current;
     tag = requestUpdateLane();
+    tag = getBumpedLaneForHydrationByLane(tag);
     hydrationCallbacks = createUpdate(tag);
     hydrationCallbacks.callback =
       void 0 !== callback && null !== callback ? callback : null;
     enqueueUpdate(containerInfo, hydrationCallbacks, tag);
-    initialChildren.current.lanes = tag;
-    markRootUpdated(initialChildren, tag);
+    callback = tag;
+    initialChildren.current.lanes = callback;
+    markRootUpdated(initialChildren, callback);
     ensureRootIsScheduled(initialChildren);
     return initialChildren;
   };
@@ -12570,8 +12500,7 @@ module.exports = function ($$$config) {
       version: rendererVersion,
       rendererPackageName: rendererPackageName,
       currentDispatcherRef: ReactSharedInternals,
-      findFiberByHostInstance: getInstanceFromNode,
-      reconcilerVersion: "19.0.0-www-modern-7283a213-20241206"
+      reconcilerVersion: "19.1.0-www-modern-d4287258-20241217"
     };
     null !== extraDevToolsConfig &&
       (internals.rendererConfig = extraDevToolsConfig);
