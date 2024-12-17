@@ -7,13 +7,13 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<f5f25af7aec4a23790b96fc530c19bf9>>
+ * @generated SignedSource<<4bd0706dcec5bbe3aed6192a633dde35>>
  */
 
 "use strict";
 __DEV__ &&
   (function () {
-    function JSCompiler_object_inline_createNodeMock_1152() {
+    function JSCompiler_object_inline_createNodeMock_1145() {
       return null;
     }
     function findHook(fiber, id) {
@@ -119,26 +119,30 @@ __DEV__ &&
       return array.sort().join(", ");
     }
     function warn(format) {
-      for (
-        var _len = arguments.length,
-          args = Array(1 < _len ? _len - 1 : 0),
-          _key = 1;
-        _key < _len;
-        _key++
-      )
-        args[_key - 1] = arguments[_key];
-      printWarning("warn", format, args);
+      if (!suppressWarning) {
+        for (
+          var _len = arguments.length,
+            args = Array(1 < _len ? _len - 1 : 0),
+            _key = 1;
+          _key < _len;
+          _key++
+        )
+          args[_key - 1] = arguments[_key];
+        printWarning("warn", format, args);
+      }
     }
     function error$jscomp$0(format) {
-      for (
-        var _len2 = arguments.length,
-          args = Array(1 < _len2 ? _len2 - 1 : 0),
-          _key2 = 1;
-        _key2 < _len2;
-        _key2++
-      )
-        args[_key2 - 1] = arguments[_key2];
-      printWarning("error", format, args);
+      if (!suppressWarning) {
+        for (
+          var _len2 = arguments.length,
+            args = Array(1 < _len2 ? _len2 - 1 : 0),
+            _key2 = 1;
+          _key2 < _len2;
+          _key2++
+        )
+          args[_key2 - 1] = arguments[_key2];
+        printWarning("error", format, args);
+      }
     }
     function printWarning(level, format, args) {
       if (ReactSharedInternals.getCurrentStack) {
@@ -525,13 +529,11 @@ __DEV__ &&
           return describeBuiltInComponentFrame("SuspenseList");
         case 0:
         case 15:
-          return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+          return describeNativeComponentFrame(fiber.type, !1);
         case 11:
-          return (
-            (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-          );
+          return describeNativeComponentFrame(fiber.type.render, !1);
         case 1:
-          return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+          return describeNativeComponentFrame(fiber.type, !0);
         default:
           return "";
       }
@@ -727,7 +729,20 @@ __DEV__ &&
         }
     }
     function setIsStrictModeForDevtools(newIsStrictMode) {
-      newIsStrictMode ? disableLogs() : reenableLogs();
+      "function" === typeof log$1 &&
+        (unstable_setDisableYieldValue(newIsStrictMode),
+        (suppressWarning = newIsStrictMode));
+      if (injectedHook && "function" === typeof injectedHook.setStrictMode)
+        try {
+          injectedHook.setStrictMode(rendererID, newIsStrictMode);
+        } catch (err) {
+          hasLoggedError ||
+            ((hasLoggedError = !0),
+            error$jscomp$0(
+              "React instrumentation encountered an error: %s",
+              err
+            ));
+        }
     }
     function injectProfilingHooks(profilingHooks) {
       injectedProfilingHooks = profilingHooks;
@@ -1102,10 +1117,6 @@ __DEV__ &&
     }
     function unhideTextInstance(textInstance) {
       textInstance.isHidden = !1;
-    }
-    function getInstanceFromNode(mockNode) {
-      mockNode = nodeToInstanceMap.get(mockNode);
-      return void 0 !== mockNode ? mockNode.internalInstanceHandle : null;
     }
     function bindToConsole(methodName, args, badgeName) {
       var offset = 0;
@@ -2269,13 +2280,13 @@ __DEV__ &&
       }
     }
     function processUpdateQueue(
-      workInProgress$jscomp$0,
+      workInProgress,
       props,
       instance$jscomp$0,
       renderLanes
     ) {
       didReadFromEntangledAsyncAction = !1;
-      var queue = workInProgress$jscomp$0.updateQueue;
+      var queue = workInProgress.updateQueue;
       hasForceUpdate = !1;
       currentlyProcessingQueue = queue.shared;
       var firstBaseUpdate = queue.firstBaseUpdate,
@@ -2290,7 +2301,7 @@ __DEV__ &&
           ? (firstBaseUpdate = firstPendingUpdate)
           : (lastBaseUpdate.next = firstPendingUpdate);
         lastBaseUpdate = lastPendingUpdate;
-        var current = workInProgress$jscomp$0.alternate;
+        var current = workInProgress.alternate;
         null !== current &&
           ((current = current.updateQueue),
           (pendingQueue = current.lastBaseUpdate),
@@ -2326,40 +2337,57 @@ __DEV__ &&
                   next: null
                 });
             a: {
-              var workInProgress = workInProgress$jscomp$0,
-                update = pendingQueue;
-              updateLane = props;
-              var instance = instance$jscomp$0;
-              switch (update.tag) {
+              updateLane = workInProgress;
+              var partialState = pendingQueue;
+              var nextProps = props,
+                instance = instance$jscomp$0;
+              switch (partialState.tag) {
                 case ReplaceState:
-                  workInProgress = update.payload;
-                  if ("function" === typeof workInProgress) {
+                  partialState = partialState.payload;
+                  if ("function" === typeof partialState) {
                     isDisallowedContextReadInDEV = !0;
-                    newState = workInProgress.call(
+                    var nextState = partialState.call(
                       instance,
                       newState,
-                      updateLane
+                      nextProps
                     );
+                    if (updateLane.mode & 8) {
+                      setIsStrictModeForDevtools(!0);
+                      try {
+                        partialState.call(instance, newState, nextProps);
+                      } finally {
+                        setIsStrictModeForDevtools(!1);
+                      }
+                    }
                     isDisallowedContextReadInDEV = !1;
+                    newState = nextState;
                     break a;
                   }
-                  newState = workInProgress;
+                  newState = partialState;
                   break a;
                 case CaptureUpdate:
-                  workInProgress.flags = (workInProgress.flags & -65537) | 128;
+                  updateLane.flags = (updateLane.flags & -65537) | 128;
                 case UpdateState:
-                  workInProgress = update.payload;
-                  "function" === typeof workInProgress
-                    ? ((isDisallowedContextReadInDEV = !0),
-                      (updateLane = workInProgress.call(
-                        instance,
-                        newState,
-                        updateLane
-                      )),
-                      (isDisallowedContextReadInDEV = !1))
-                    : (updateLane = workInProgress);
-                  if (null === updateLane || void 0 === updateLane) break a;
-                  newState = assign({}, newState, updateLane);
+                  nextState = partialState.payload;
+                  if ("function" === typeof nextState) {
+                    isDisallowedContextReadInDEV = !0;
+                    partialState = nextState.call(
+                      instance,
+                      newState,
+                      nextProps
+                    );
+                    if (updateLane.mode & 8) {
+                      setIsStrictModeForDevtools(!0);
+                      try {
+                        nextState.call(instance, newState, nextProps);
+                      } finally {
+                        setIsStrictModeForDevtools(!1);
+                      }
+                    }
+                    isDisallowedContextReadInDEV = !1;
+                  } else partialState = nextState;
+                  if (null === partialState || void 0 === partialState) break a;
+                  newState = assign({}, newState, partialState);
                   break a;
                 case ForceUpdate:
                   hasForceUpdate = !0;
@@ -2367,8 +2395,8 @@ __DEV__ &&
             }
             updateLane = pendingQueue.callback;
             null !== updateLane &&
-              ((workInProgress$jscomp$0.flags |= 64),
-              isHiddenUpdate && (workInProgress$jscomp$0.flags |= 8192),
+              ((workInProgress.flags |= 64),
+              isHiddenUpdate && (workInProgress.flags |= 8192),
               (isHiddenUpdate = queue.callbacks),
               null === isHiddenUpdate
                 ? (queue.callbacks = [updateLane])
@@ -2403,8 +2431,8 @@ __DEV__ &&
         queue.lastBaseUpdate = current;
         null === firstBaseUpdate && (queue.shared.lanes = 0);
         workInProgressRootSkippedLanes |= lastBaseUpdate;
-        workInProgress$jscomp$0.lanes = lastBaseUpdate;
-        workInProgress$jscomp$0.memoizedState = newState;
+        workInProgress.lanes = lastBaseUpdate;
+        workInProgress.memoizedState = newState;
       }
       currentlyProcessingQueue = null;
     }
@@ -2697,18 +2725,32 @@ __DEV__ &&
           : null !== hookTypesDev
             ? HooksDispatcherOnMountWithHookTypesInDEV
             : HooksDispatcherOnMountInDEV;
-      shouldDoubleInvokeUserFnsInHooksDEV = !1;
-      nextRenderLanes = callComponentInDEV(Component, props, secondArg);
+      shouldDoubleInvokeUserFnsInHooksDEV = nextRenderLanes =
+        0 !== (workInProgress.mode & 8);
+      var children = callComponentInDEV(Component, props, secondArg);
       shouldDoubleInvokeUserFnsInHooksDEV = !1;
       didScheduleRenderPhaseUpdateDuringThisPass &&
-        (nextRenderLanes = renderWithHooksAgain(
+        (children = renderWithHooksAgain(
           workInProgress,
           Component,
           props,
           secondArg
         ));
+      if (nextRenderLanes) {
+        setIsStrictModeForDevtools(!0);
+        try {
+          children = renderWithHooksAgain(
+            workInProgress,
+            Component,
+            props,
+            secondArg
+          );
+        } finally {
+          setIsStrictModeForDevtools(!1);
+        }
+      }
       finishRenderingHooks(current, workInProgress);
-      return nextRenderLanes;
+      return children;
     }
     function finishRenderingHooks(current, workInProgress) {
       workInProgress._debugHookTypes = hookTypesDev;
@@ -2883,6 +2925,9 @@ __DEV__ &&
           : (workInProgressHook = workInProgressHook.next = nextCurrentHook);
       }
       return workInProgressHook;
+    }
+    function createFunctionComponentUpdateQueue() {
+      return { lastEffect: null, events: null, stores: null, memoCache: null };
     }
     function useThenable(thenable) {
       var index = thenableIndexCounter$1;
@@ -5317,9 +5362,17 @@ __DEV__ &&
       getDerivedStateFromProps,
       nextProps
     ) {
-      var prevState = workInProgress.memoizedState;
-      getDerivedStateFromProps = getDerivedStateFromProps(nextProps, prevState);
-      void 0 === getDerivedStateFromProps &&
+      var prevState = workInProgress.memoizedState,
+        partialState = getDerivedStateFromProps(nextProps, prevState);
+      if (workInProgress.mode & 8) {
+        setIsStrictModeForDevtools(!0);
+        try {
+          partialState = getDerivedStateFromProps(nextProps, prevState);
+        } finally {
+          setIsStrictModeForDevtools(!1);
+        }
+      }
+      void 0 === partialState &&
         ((ctor = getComponentNameFromType(ctor) || "Component"),
         didWarnAboutUndefinedDerivedState.has(ctor) ||
           (didWarnAboutUndefinedDerivedState.add(ctor),
@@ -5328,9 +5381,9 @@ __DEV__ &&
             ctor
           )));
       prevState =
-        null === getDerivedStateFromProps || void 0 === getDerivedStateFromProps
+        null === partialState || void 0 === partialState
           ? prevState
-          : assign({}, prevState, getDerivedStateFromProps);
+          : assign({}, prevState, partialState);
       workInProgress.memoizedState = prevState;
       0 === workInProgress.lanes &&
         (workInProgress.updateQueue.baseState = prevState);
@@ -5344,23 +5397,35 @@ __DEV__ &&
       newState,
       nextContext
     ) {
-      workInProgress = workInProgress.stateNode;
-      return "function" === typeof workInProgress.shouldComponentUpdate
-        ? ((oldProps = workInProgress.shouldComponentUpdate(
-            newProps,
-            newState,
-            nextContext
-          )),
-          void 0 === oldProps &&
-            error$jscomp$0(
-              "%s.shouldComponentUpdate(): Returned undefined instead of a boolean value. Make sure to return true or false.",
-              getComponentNameFromType(ctor) || "Component"
-            ),
-          oldProps)
-        : ctor.prototype && ctor.prototype.isPureReactComponent
-          ? !shallowEqual(oldProps, newProps) ||
-            !shallowEqual(oldState, newState)
-          : !0;
+      var instance = workInProgress.stateNode;
+      if ("function" === typeof instance.shouldComponentUpdate) {
+        oldProps = instance.shouldComponentUpdate(
+          newProps,
+          newState,
+          nextContext
+        );
+        if (workInProgress.mode & 8) {
+          setIsStrictModeForDevtools(!0);
+          try {
+            oldProps = instance.shouldComponentUpdate(
+              newProps,
+              newState,
+              nextContext
+            );
+          } finally {
+            setIsStrictModeForDevtools(!1);
+          }
+        }
+        void 0 === oldProps &&
+          error$jscomp$0(
+            "%s.shouldComponentUpdate(): Returned undefined instead of a boolean value. Make sure to return true or false.",
+            getComponentNameFromType(ctor) || "Component"
+          );
+        return oldProps;
+      }
+      return ctor.prototype && ctor.prototype.isPureReactComponent
+        ? !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState)
+        : !0;
     }
     function constructClassInstance(workInProgress, ctor, props) {
       var isLegacyContextConsumer = !1,
@@ -5400,47 +5465,57 @@ __DEV__ &&
             void 0 !== isLegacyContextConsumer)
             ? getMaskedContext(workInProgress, unmaskedContext)
             : emptyContextObject));
-      props = new ctor(props, context);
-      addendum = workInProgress.memoizedState =
-        null !== props.state && void 0 !== props.state ? props.state : null;
-      props.updater = classComponentUpdater;
-      workInProgress.stateNode = props;
-      props._reactInternals = workInProgress;
-      props._reactInternalInstance = fakeInternalInstance;
+      addendum = new ctor(props, context);
+      if (workInProgress.mode & 8) {
+        setIsStrictModeForDevtools(!0);
+        try {
+          addendum = new ctor(props, context);
+        } finally {
+          setIsStrictModeForDevtools(!1);
+        }
+      }
+      props = workInProgress.memoizedState =
+        null !== addendum.state && void 0 !== addendum.state
+          ? addendum.state
+          : null;
+      addendum.updater = classComponentUpdater;
+      workInProgress.stateNode = addendum;
+      addendum._reactInternals = workInProgress;
+      addendum._reactInternalInstance = fakeInternalInstance;
       "function" === typeof ctor.getDerivedStateFromProps &&
-        null === addendum &&
-        ((addendum = getComponentNameFromType(ctor) || "Component"),
-        didWarnAboutUninitializedState.has(addendum) ||
-          (didWarnAboutUninitializedState.add(addendum),
+        null === props &&
+        ((props = getComponentNameFromType(ctor) || "Component"),
+        didWarnAboutUninitializedState.has(props) ||
+          (didWarnAboutUninitializedState.add(props),
           error$jscomp$0(
             "`%s` uses `getDerivedStateFromProps` but its initial state is %s. This is not recommended. Instead, define the initial state by assigning an object to `this.state` in the constructor of `%s`. This ensures that `getDerivedStateFromProps` arguments have a consistent shape.",
-            addendum,
-            null === props.state ? "null" : "undefined",
-            addendum
+            props,
+            null === addendum.state ? "null" : "undefined",
+            props
           )));
       if (
         "function" === typeof ctor.getDerivedStateFromProps ||
-        "function" === typeof props.getSnapshotBeforeUpdate
+        "function" === typeof addendum.getSnapshotBeforeUpdate
       ) {
-        var foundWillReceivePropsName = (addendum = null),
+        var foundWillReceivePropsName = (props = null),
           foundWillUpdateName = null;
-        "function" === typeof props.componentWillMount &&
-        !0 !== props.componentWillMount.__suppressDeprecationWarning
-          ? (addendum = "componentWillMount")
-          : "function" === typeof props.UNSAFE_componentWillMount &&
-            (addendum = "UNSAFE_componentWillMount");
-        "function" === typeof props.componentWillReceiveProps &&
-        !0 !== props.componentWillReceiveProps.__suppressDeprecationWarning
+        "function" === typeof addendum.componentWillMount &&
+        !0 !== addendum.componentWillMount.__suppressDeprecationWarning
+          ? (props = "componentWillMount")
+          : "function" === typeof addendum.UNSAFE_componentWillMount &&
+            (props = "UNSAFE_componentWillMount");
+        "function" === typeof addendum.componentWillReceiveProps &&
+        !0 !== addendum.componentWillReceiveProps.__suppressDeprecationWarning
           ? (foundWillReceivePropsName = "componentWillReceiveProps")
-          : "function" === typeof props.UNSAFE_componentWillReceiveProps &&
+          : "function" === typeof addendum.UNSAFE_componentWillReceiveProps &&
             (foundWillReceivePropsName = "UNSAFE_componentWillReceiveProps");
-        "function" === typeof props.componentWillUpdate &&
-        !0 !== props.componentWillUpdate.__suppressDeprecationWarning
+        "function" === typeof addendum.componentWillUpdate &&
+        !0 !== addendum.componentWillUpdate.__suppressDeprecationWarning
           ? (foundWillUpdateName = "componentWillUpdate")
-          : "function" === typeof props.UNSAFE_componentWillUpdate &&
+          : "function" === typeof addendum.UNSAFE_componentWillUpdate &&
             (foundWillUpdateName = "UNSAFE_componentWillUpdate");
         if (
-          null !== addendum ||
+          null !== props ||
           null !== foundWillReceivePropsName ||
           null !== foundWillUpdateName
         ) {
@@ -5455,7 +5530,7 @@ __DEV__ &&
               "Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n%s uses %s but also contains the following legacy lifecycles:%s%s%s\n\nThe above lifecycles should be removed. Learn more about this warning here:\nhttps://react.dev/link/unsafe-component-lifecycles",
               _componentName,
               ctor,
-              null !== addendum ? "\n  " + addendum : "",
+              null !== props ? "\n  " + props : "",
               null !== foundWillReceivePropsName
                 ? "\n  " + foundWillReceivePropsName
                 : "",
@@ -5468,7 +5543,7 @@ __DEV__ &&
         (workInProgress.__reactInternalMemoizedUnmaskedChildContext =
           unmaskedContext),
         (workInProgress.__reactInternalMemoizedMaskedChildContext = context));
-      return props;
+      return addendum;
     }
     function callComponentWillReceiveProps(
       workInProgress,
@@ -6655,10 +6730,19 @@ __DEV__ &&
       ) {
         var nextChildren = null;
         profilerStartTime = -1;
-      } else
-        markComponentRenderStarted(workInProgress),
-          (nextChildren = callRenderInDEV(shouldUpdate)),
-          markComponentRenderStopped();
+      } else {
+        markComponentRenderStarted(workInProgress);
+        nextChildren = callRenderInDEV(shouldUpdate);
+        if (workInProgress.mode & 8) {
+          setIsStrictModeForDevtools(!0);
+          try {
+            callRenderInDEV(shouldUpdate);
+          } finally {
+            setIsStrictModeForDevtools(!1);
+          }
+        }
+        markComponentRenderStopped();
+      }
       workInProgress.flags |= 1;
       null !== current$jscomp$0 && didCaptureError
         ? ((didCaptureError = nextChildren),
@@ -13360,6 +13444,7 @@ __DEV__ &&
       Scheduler$1 = require("scheduler"),
       ReactSharedInternals =
         React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
+      suppressWarning = !1,
       assign = Object.assign,
       REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
       REACT_ELEMENT_TYPE = REACT_LEGACY_ELEMENT_TYPE,
@@ -13376,7 +13461,6 @@ __DEV__ &&
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy");
     Symbol.for("react.scope");
-    Symbol.for("react.debug_trace_mode");
     var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
     Symbol.for("react.legacy_hidden");
     Symbol.for("react.tracing_marker");
@@ -13410,6 +13494,8 @@ __DEV__ &&
       UserBlockingPriority = Scheduler$1.unstable_UserBlockingPriority,
       NormalPriority$1 = Scheduler$1.unstable_NormalPriority,
       IdlePriority = Scheduler$1.unstable_IdlePriority,
+      log$1 = Scheduler$1.log,
+      unstable_setDisableYieldValue = Scheduler$1.unstable_setDisableYieldValue,
       rendererID = null,
       injectedHook = null,
       injectedProfilingHooks = null,
@@ -13737,36 +13823,33 @@ __DEV__ &&
       currentHookNameInDev = null,
       hookTypesDev = null,
       hookTypesUpdateIndexDev = -1,
-      ignorePreviousDependencies = !1;
-    var createFunctionComponentUpdateQueue = function () {
-      return { lastEffect: null, events: null, stores: null, memoCache: null };
-    };
-    var ContextOnlyDispatcher = {
-      readContext: readContext,
-      use: use,
-      useCallback: throwInvalidHookError,
-      useContext: throwInvalidHookError,
-      useEffect: throwInvalidHookError,
-      useImperativeHandle: throwInvalidHookError,
-      useLayoutEffect: throwInvalidHookError,
-      useInsertionEffect: throwInvalidHookError,
-      useMemo: throwInvalidHookError,
-      useReducer: throwInvalidHookError,
-      useRef: throwInvalidHookError,
-      useState: throwInvalidHookError,
-      useDebugValue: throwInvalidHookError,
-      useDeferredValue: throwInvalidHookError,
-      useTransition: throwInvalidHookError,
-      useSyncExternalStore: throwInvalidHookError,
-      useId: throwInvalidHookError
-    };
-    ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-    ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
+      ignorePreviousDependencies = !1,
+      ContextOnlyDispatcher = {
+        readContext: readContext,
+        use: use,
+        useCallback: throwInvalidHookError,
+        useContext: throwInvalidHookError,
+        useEffect: throwInvalidHookError,
+        useImperativeHandle: throwInvalidHookError,
+        useLayoutEffect: throwInvalidHookError,
+        useInsertionEffect: throwInvalidHookError,
+        useMemo: throwInvalidHookError,
+        useReducer: throwInvalidHookError,
+        useRef: throwInvalidHookError,
+        useState: throwInvalidHookError,
+        useDebugValue: throwInvalidHookError,
+        useDeferredValue: throwInvalidHookError,
+        useTransition: throwInvalidHookError,
+        useSyncExternalStore: throwInvalidHookError,
+        useId: throwInvalidHookError,
+        useHostTransitionStatus: throwInvalidHookError,
+        useFormState: throwInvalidHookError,
+        useActionState: throwInvalidHookError,
+        useOptimistic: throwInvalidHookError,
+        useMemoCache: throwInvalidHookError,
+        useCacheRefresh: throwInvalidHookError
+      };
     ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError;
-    ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-    ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-    ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-    ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
     var HooksDispatcherOnMountInDEV = null,
       HooksDispatcherOnMountWithHookTypesInDEV = null,
       HooksDispatcherOnUpdateInDEV = null,
@@ -13877,58 +13960,54 @@ __DEV__ &&
         mountHookTypesDev();
         return mountId();
       },
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        mountHookTypesDev();
+        warnOnUseFormStateInDev();
+        return mountActionState(action, initialState);
+      },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        mountHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        mountHookTypesDev();
+        return mountOptimistic(passthrough);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         mountHookTypesDev();
         return mountRefresh();
-      }
-    };
-    HooksDispatcherOnMountInDEV.useMemoCache = useMemoCache;
-    HooksDispatcherOnMountInDEV.useResourceEffect = function (
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    ) {
-      currentHookNameInDev = "useResourceEffect";
-      mountHookTypesDev();
-      void 0 !== updateDeps &&
-        null !== updateDeps &&
-        isArrayImpl(updateDeps) &&
-        0 === updateDeps.length &&
-        error$jscomp$0(
-          "%s received a dependency array with no dependencies. When specified, the dependency array must have at least one dependency.",
-          currentHookNameInDev
-        );
-      return mountResourceEffect(
+      },
+      useResourceEffect: function (
         create,
         createDeps,
         update,
         updateDeps,
         destroy
-      );
-    };
-    HooksDispatcherOnMountInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnMountInDEV.useFormState = function (action, initialState) {
-      currentHookNameInDev = "useFormState";
-      mountHookTypesDev();
-      warnOnUseFormStateInDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountInDEV.useOptimistic = function (passthrough) {
-      currentHookNameInDev = "useOptimistic";
-      mountHookTypesDev();
-      return mountOptimistic(passthrough);
+      ) {
+        currentHookNameInDev = "useResourceEffect";
+        mountHookTypesDev();
+        void 0 !== updateDeps &&
+          null !== updateDeps &&
+          isArrayImpl(updateDeps) &&
+          0 === updateDeps.length &&
+          error$jscomp$0(
+            "%s received a dependency array with no dependencies. When specified, the dependency array must have at least one dependency.",
+            currentHookNameInDev
+          );
+        return mountResourceEffect(
+          create,
+          createDeps,
+          update,
+          updateDeps,
+          destroy
+        );
+      }
     };
     HooksDispatcherOnMountWithHookTypesInDEV = {
       readContext: function (context) {
@@ -14027,55 +14106,46 @@ __DEV__ &&
         updateHookTypesDev();
         return mountId();
       },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return mountOptimistic(passthrough);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return mountRefresh();
-      }
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useMemoCache = useMemoCache;
-    HooksDispatcherOnMountWithHookTypesInDEV.useResourceEffect = function (
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    ) {
-      currentHookNameInDev = "useResourceEffect";
-      updateHookTypesDev();
-      return mountResourceEffect(
+      },
+      useResourceEffect: function (
         create,
         createDeps,
         update,
         updateDeps,
         destroy
-      );
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnMountWithHookTypesInDEV.useFormState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useOptimistic = function (
-      passthrough
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return mountOptimistic(passthrough);
+      ) {
+        currentHookNameInDev = "useResourceEffect";
+        updateHookTypesDev();
+        return mountResourceEffect(
+          create,
+          createDeps,
+          update,
+          updateDeps,
+          destroy
+        );
+      }
     };
     HooksDispatcherOnUpdateInDEV = {
       readContext: function (context) {
@@ -14174,52 +14244,48 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return updateActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return updateActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return updateOptimistic(passthrough, reducer);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
-      }
-    };
-    HooksDispatcherOnUpdateInDEV.useMemoCache = useMemoCache;
-    HooksDispatcherOnUpdateInDEV.useResourceEffect = function (
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    ) {
-      currentHookNameInDev = "useResourceEffect";
-      updateHookTypesDev();
-      updateResourceEffectImpl(
-        2048,
-        Passive,
+      },
+      useResourceEffect: function (
         create,
         createDeps,
         update,
         updateDeps,
         destroy
-      );
-    };
-    HooksDispatcherOnUpdateInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnUpdateInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return updateActionState(action);
-    };
-    HooksDispatcherOnUpdateInDEV.useActionState = function (action) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    HooksDispatcherOnUpdateInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return updateOptimistic(passthrough, reducer);
+      ) {
+        currentHookNameInDev = "useResourceEffect";
+        updateHookTypesDev();
+        updateResourceEffectImpl(
+          2048,
+          Passive,
+          create,
+          createDeps,
+          update,
+          updateDeps,
+          destroy
+        );
+      }
     };
     HooksDispatcherOnRerenderInDEV = {
       readContext: function (context) {
@@ -14318,52 +14384,48 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return rerenderActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return rerenderActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return rerenderOptimistic(passthrough, reducer);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
-      }
-    };
-    HooksDispatcherOnRerenderInDEV.useMemoCache = useMemoCache;
-    HooksDispatcherOnRerenderInDEV.useResourceEffect = function (
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    ) {
-      currentHookNameInDev = "useResourceEffect";
-      updateHookTypesDev();
-      updateResourceEffectImpl(
-        2048,
-        Passive,
+      },
+      useResourceEffect: function (
         create,
         createDeps,
         update,
         updateDeps,
         destroy
-      );
-    };
-    HooksDispatcherOnRerenderInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnRerenderInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return rerenderActionState(action);
-    };
-    HooksDispatcherOnRerenderInDEV.useActionState = function (action) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    HooksDispatcherOnRerenderInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return rerenderOptimistic(passthrough, reducer);
+      ) {
+        currentHookNameInDev = "useResourceEffect";
+        updateHookTypesDev();
+        updateResourceEffectImpl(
+          2048,
+          Passive,
+          create,
+          createDeps,
+          update,
+          updateDeps,
+          destroy
+        );
+      }
     };
     InvalidNestedHooksDispatcherOnMountInDEV = {
       readContext: function (context) {
@@ -14481,14 +14543,33 @@ __DEV__ &&
         mountHookTypesDev();
         return mountId();
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         mountHookTypesDev();
-        return mountRefresh();
+        return mountActionState(action, initialState);
+      },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        mountHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        mountHookTypesDev();
+        return mountOptimistic(passthrough);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        mountHookTypesDev();
+        return mountRefresh();
       },
       useResourceEffect: function (
         create,
@@ -14508,34 +14589,6 @@ __DEV__ &&
           destroy
         );
       }
-    };
-    InvalidNestedHooksDispatcherOnMountInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnMountInDEV.useFormState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    InvalidNestedHooksDispatcherOnMountInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    InvalidNestedHooksDispatcherOnMountInDEV.useOptimistic = function (
-      passthrough
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountOptimistic(passthrough);
     };
     InvalidNestedHooksDispatcherOnUpdateInDEV = {
       readContext: function (context) {
@@ -14653,14 +14706,33 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         updateHookTypesDev();
-        return updateWorkInProgressHook().memoizedState;
+        return updateActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return updateActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return updateOptimistic(passthrough, reducer);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        updateHookTypesDev();
+        return updateWorkInProgressHook().memoizedState;
       },
       useResourceEffect: function (
         create,
@@ -14682,31 +14754,6 @@ __DEV__ &&
           destroy
         );
       }
-    };
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useActionState = function (
-      action
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateOptimistic(passthrough, reducer);
     };
     InvalidNestedHooksDispatcherOnRerenderInDEV = {
       readContext: function (context) {
@@ -14824,14 +14871,33 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         updateHookTypesDev();
-        return updateWorkInProgressHook().memoizedState;
+        return rerenderActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return rerenderActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return rerenderOptimistic(passthrough, reducer);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        updateHookTypesDev();
+        return updateWorkInProgressHook().memoizedState;
       },
       useResourceEffect: function (
         create,
@@ -14853,33 +14919,6 @@ __DEV__ &&
           destroy
         );
       }
-    };
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useFormState = function (
-      action
-    ) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useActionState = function (
-      action
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderOptimistic(passthrough, reducer);
     };
     var callComponent = {
         "react-stack-bottom-frame": function (Component, props, secondArg) {
@@ -15556,11 +15595,10 @@ __DEV__ &&
     (function () {
       var internals = {
         bundleType: 1,
-        version: "19.0.0-native-fb-7283a213-20241206",
+        version: "19.1.0-native-fb-d4287258-20241217",
         rendererPackageName: "react-test-renderer",
         currentDispatcherRef: ReactSharedInternals,
-        findFiberByHostInstance: getInstanceFromNode,
-        reconcilerVersion: "19.0.0-native-fb-7283a213-20241206"
+        reconcilerVersion: "19.1.0-native-fb-d4287258-20241217"
       };
       internals.overrideHookState = overrideHookState;
       internals.overrideHookStateDeletePath = overrideHookStateDeletePath;
@@ -15582,7 +15620,7 @@ __DEV__ &&
     exports._Scheduler = Scheduler;
     exports.act = act;
     exports.create = function (element, options) {
-      var createNodeMock = JSCompiler_object_inline_createNodeMock_1152,
+      var createNodeMock = JSCompiler_object_inline_createNodeMock_1145,
         isConcurrent = !1,
         isStrictMode = !1;
       "object" === typeof options &&
@@ -15705,5 +15743,5 @@ __DEV__ &&
             flushSyncWorkAcrossRoots_impl(0, !0));
       }
     };
-    exports.version = "19.0.0-native-fb-7283a213-20241206";
+    exports.version = "19.1.0-native-fb-d4287258-20241217";
   })();

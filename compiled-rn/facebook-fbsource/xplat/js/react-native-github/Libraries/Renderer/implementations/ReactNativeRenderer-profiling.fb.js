@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<68f39809de85d6a8df06e502819cdeea>>
+ * @generated SignedSource<<f9a00b77e8fd2f8662380032f6bdae0e>>
  */
 
 "use strict";
@@ -45,7 +45,6 @@ var ReactNativePrivateInterface = require("react-native/Libraries/ReactPrivate/R
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy");
 Symbol.for("react.scope");
-Symbol.for("react.debug_trace_mode");
 var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
 Symbol.for("react.legacy_hidden");
 Symbol.for("react.tracing_marker");
@@ -225,13 +224,11 @@ function describeFiber(fiber) {
       return describeBuiltInComponentFrame("SuspenseList");
     case 0:
     case 15:
-      return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+      return describeNativeComponentFrame(fiber.type, !1);
     case 11:
-      return (
-        (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-      );
+      return describeNativeComponentFrame(fiber.type.render, !1);
     case 1:
-      return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+      return describeNativeComponentFrame(fiber.type, !0);
     default:
       return "";
   }
@@ -1232,7 +1229,7 @@ eventPluginOrder = Array.prototype.slice.call([
   "ReactNativeBridgeEventPlugin"
 ]);
 recomputePluginOrdering();
-var injectedNamesToPlugins$jscomp$inline_311 = {
+var injectedNamesToPlugins$jscomp$inline_302 = {
     ResponderEventPlugin: ResponderEventPlugin,
     ReactNativeBridgeEventPlugin: {
       eventTypes: {},
@@ -1278,32 +1275,32 @@ var injectedNamesToPlugins$jscomp$inline_311 = {
       }
     }
   },
-  isOrderingDirty$jscomp$inline_312 = !1,
-  pluginName$jscomp$inline_313;
-for (pluginName$jscomp$inline_313 in injectedNamesToPlugins$jscomp$inline_311)
+  isOrderingDirty$jscomp$inline_303 = !1,
+  pluginName$jscomp$inline_304;
+for (pluginName$jscomp$inline_304 in injectedNamesToPlugins$jscomp$inline_302)
   if (
-    injectedNamesToPlugins$jscomp$inline_311.hasOwnProperty(
-      pluginName$jscomp$inline_313
+    injectedNamesToPlugins$jscomp$inline_302.hasOwnProperty(
+      pluginName$jscomp$inline_304
     )
   ) {
-    var pluginModule$jscomp$inline_314 =
-      injectedNamesToPlugins$jscomp$inline_311[pluginName$jscomp$inline_313];
+    var pluginModule$jscomp$inline_305 =
+      injectedNamesToPlugins$jscomp$inline_302[pluginName$jscomp$inline_304];
     if (
-      !namesToPlugins.hasOwnProperty(pluginName$jscomp$inline_313) ||
-      namesToPlugins[pluginName$jscomp$inline_313] !==
-        pluginModule$jscomp$inline_314
+      !namesToPlugins.hasOwnProperty(pluginName$jscomp$inline_304) ||
+      namesToPlugins[pluginName$jscomp$inline_304] !==
+        pluginModule$jscomp$inline_305
     ) {
-      if (namesToPlugins[pluginName$jscomp$inline_313])
+      if (namesToPlugins[pluginName$jscomp$inline_304])
         throw Error(
           "EventPluginRegistry: Cannot inject two different event plugins using the same name, `" +
-            (pluginName$jscomp$inline_313 + "`.")
+            (pluginName$jscomp$inline_304 + "`.")
         );
-      namesToPlugins[pluginName$jscomp$inline_313] =
-        pluginModule$jscomp$inline_314;
-      isOrderingDirty$jscomp$inline_312 = !0;
+      namesToPlugins[pluginName$jscomp$inline_304] =
+        pluginModule$jscomp$inline_305;
+      isOrderingDirty$jscomp$inline_303 = !0;
     }
   }
-isOrderingDirty$jscomp$inline_312 && recomputePluginOrdering();
+isOrderingDirty$jscomp$inline_303 && recomputePluginOrdering();
 var instanceCache = new Map(),
   instanceProps = new Map();
 function getInstanceFromTag(tag) {
@@ -3514,10 +3511,9 @@ function updateWorkInProgressHook() {
   }
   return workInProgressHook;
 }
-var createFunctionComponentUpdateQueue;
-createFunctionComponentUpdateQueue = function () {
+function createFunctionComponentUpdateQueue() {
   return { lastEffect: null, events: null, stores: null, memoCache: null };
-};
+}
 function useThenable(thenable) {
   var index = thenableIndexCounter$1;
   thenableIndexCounter$1 += 1;
@@ -4453,16 +4449,16 @@ var ContextOnlyDispatcher = {
   useDeferredValue: throwInvalidHookError,
   useTransition: throwInvalidHookError,
   useSyncExternalStore: throwInvalidHookError,
-  useId: throwInvalidHookError
+  useId: throwInvalidHookError,
+  useHostTransitionStatus: throwInvalidHookError,
+  useFormState: throwInvalidHookError,
+  useActionState: throwInvalidHookError,
+  useOptimistic: throwInvalidHookError,
+  useMemoCache: throwInvalidHookError,
+  useCacheRefresh: throwInvalidHookError
 };
-ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
 enableUseResourceEffectHook &&
   (ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError);
-ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
 var HooksDispatcherOnMount = {
   readContext: readContext,
   use: use,
@@ -4596,6 +4592,30 @@ var HooksDispatcherOnMount = {
       ":" + identifierPrefix + "r" + globalClientId.toString(32) + ":";
     return (hook.memoizedState = identifierPrefix);
   },
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: mountActionState,
+  useActionState: mountActionState,
+  useOptimistic: function (passthrough) {
+    var hook = mountWorkInProgressHook();
+    hook.memoizedState = hook.baseState = passthrough;
+    var queue = {
+      pending: null,
+      lanes: 0,
+      dispatch: null,
+      lastRenderedReducer: null,
+      lastRenderedState: null
+    };
+    hook.queue = queue;
+    hook = dispatchOptimisticSetState.bind(
+      null,
+      currentlyRenderingFiber$1,
+      !0,
+      queue
+    );
+    queue.dispatch = hook;
+    return [passthrough, hook];
+  },
+  useMemoCache: useMemoCache,
   useCacheRefresh: function () {
     return (mountWorkInProgressHook().memoizedState = refreshCache.bind(
       null,
@@ -4603,32 +4623,8 @@ var HooksDispatcherOnMount = {
     ));
   }
 };
-HooksDispatcherOnMount.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnMount.useResourceEffect = mountResourceEffect);
-HooksDispatcherOnMount.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnMount.useFormState = mountActionState;
-HooksDispatcherOnMount.useActionState = mountActionState;
-HooksDispatcherOnMount.useOptimistic = function (passthrough) {
-  var hook = mountWorkInProgressHook();
-  hook.memoizedState = hook.baseState = passthrough;
-  var queue = {
-    pending: null,
-    lanes: 0,
-    dispatch: null,
-    lastRenderedReducer: null,
-    lastRenderedState: null
-  };
-  hook.queue = queue;
-  hook = dispatchOptimisticSetState.bind(
-    null,
-    currentlyRenderingFiber$1,
-    !0,
-    queue
-  );
-  queue.dispatch = hook;
-  return [passthrough, hook];
-};
 var HooksDispatcherOnUpdate = {
   readContext: readContext,
   use: use,
@@ -4665,19 +4661,19 @@ var HooksDispatcherOnUpdate = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: updateActionState,
+  useActionState: updateActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnUpdate.useCacheRefresh = updateRefresh;
-HooksDispatcherOnUpdate.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnUpdate.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnUpdate.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnUpdate.useFormState = updateActionState;
-HooksDispatcherOnUpdate.useActionState = updateActionState;
-HooksDispatcherOnUpdate.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-};
 var HooksDispatcherOnRerender = {
   readContext: readContext,
   use: use,
@@ -4716,22 +4712,22 @@ var HooksDispatcherOnRerender = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: rerenderActionState,
+  useActionState: rerenderActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    if (null !== currentHook)
+      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+    hook.baseState = passthrough;
+    return [passthrough, hook.queue.dispatch];
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnRerender.useCacheRefresh = updateRefresh;
-HooksDispatcherOnRerender.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnRerender.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnRerender.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnRerender.useFormState = rerenderActionState;
-HooksDispatcherOnRerender.useActionState = rerenderActionState;
-HooksDispatcherOnRerender.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  if (null !== currentHook)
-    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-  hook.baseState = passthrough;
-  return [passthrough, hook.queue.dispatch];
-};
 var thenableState = null,
   thenableIndexCounter = 0;
 function unwrapThenable(thenable) {
@@ -11889,11 +11885,11 @@ function updateContainer(element, container, parentComponent, callback) {
   return lane;
 }
 var isomorphicReactPackageVersion = React.version;
-if ("19.0.0-native-fb-7283a213-20241206" !== isomorphicReactPackageVersion)
+if ("19.1.0-native-fb-d4287258-20241217" !== isomorphicReactPackageVersion)
   throw Error(
     'Incompatible React versions: The "react" and "react-native-renderer" packages must have the exact same version. Instead got:\n  - react:                  ' +
       (isomorphicReactPackageVersion +
-        "\n  - react-native-renderer:  19.0.0-native-fb-7283a213-20241206\nLearn more: https://react.dev/warnings/version-mismatch")
+        "\n  - react-native-renderer:  19.1.0-native-fb-d4287258-20241217\nLearn more: https://react.dev/warnings/version-mismatch")
   );
 if (
   "function" !==
@@ -11940,17 +11936,16 @@ batchedUpdatesImpl = function (fn, a) {
   }
 };
 var roots = new Map(),
-  internals$jscomp$inline_1373 = {
+  internals$jscomp$inline_1364 = {
     bundleType: 0,
-    version: "19.0.0-native-fb-7283a213-20241206",
+    version: "19.1.0-native-fb-d4287258-20241217",
     rendererPackageName: "react-native-renderer",
     currentDispatcherRef: ReactSharedInternals,
-    findFiberByHostInstance: getInstanceFromTag,
-    reconcilerVersion: "19.0.0-native-fb-7283a213-20241206"
+    reconcilerVersion: "19.1.0-native-fb-d4287258-20241217"
   };
 null !== extraDevToolsConfig &&
-  (internals$jscomp$inline_1373.rendererConfig = extraDevToolsConfig);
-internals$jscomp$inline_1373.getLaneLabelMap = function () {
+  (internals$jscomp$inline_1364.rendererConfig = extraDevToolsConfig);
+internals$jscomp$inline_1364.getLaneLabelMap = function () {
   for (
     var map = new Map(), lane = 1, index$158 = 0;
     31 > index$158;
@@ -11962,20 +11957,20 @@ internals$jscomp$inline_1373.getLaneLabelMap = function () {
   }
   return map;
 };
-internals$jscomp$inline_1373.injectProfilingHooks = function (profilingHooks) {
+internals$jscomp$inline_1364.injectProfilingHooks = function (profilingHooks) {
   injectedProfilingHooks = profilingHooks;
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
-  var hook$jscomp$inline_1673 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
+  var hook$jscomp$inline_1664 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (
-    !hook$jscomp$inline_1673.isDisabled &&
-    hook$jscomp$inline_1673.supportsFiber
+    !hook$jscomp$inline_1664.isDisabled &&
+    hook$jscomp$inline_1664.supportsFiber
   )
     try {
-      (rendererID = hook$jscomp$inline_1673.inject(
-        internals$jscomp$inline_1373
+      (rendererID = hook$jscomp$inline_1664.inject(
+        internals$jscomp$inline_1364
       )),
-        (injectedHook = hook$jscomp$inline_1673);
+        (injectedHook = hook$jscomp$inline_1664);
     } catch (err) {}
 }
 exports.createPortal = function (children, containerTag) {

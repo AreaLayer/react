@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<1494996f791a1408d68bb9eb17f70ced>>
+ * @generated SignedSource<<c6230925642a083ece08955d3639fd32>>
  */
 
 "use strict";
@@ -376,6 +376,27 @@ __DEV__ &&
       "function" === typeof fn && componentFrameCache.set(fn, sampleLines);
       return sampleLines;
     }
+    function formatOwnerStack(error) {
+      var prevPrepareStackTrace = Error.prepareStackTrace;
+      Error.prepareStackTrace = void 0;
+      error = error.stack;
+      Error.prepareStackTrace = prevPrepareStackTrace;
+      error.startsWith("Error: react-stack-top-frame\n") &&
+        (error = error.slice(29));
+      prevPrepareStackTrace = error.indexOf("\n");
+      -1 !== prevPrepareStackTrace &&
+        (error = error.slice(prevPrepareStackTrace + 1));
+      prevPrepareStackTrace = error.indexOf("react-stack-bottom-frame");
+      -1 !== prevPrepareStackTrace &&
+        (prevPrepareStackTrace = error.lastIndexOf(
+          "\n",
+          prevPrepareStackTrace
+        ));
+      if (-1 !== prevPrepareStackTrace)
+        error = error.slice(0, prevPrepareStackTrace);
+      else return "";
+      return error;
+    }
     function describeFiber(fiber) {
       switch (fiber.tag) {
         case 26:
@@ -390,13 +411,11 @@ __DEV__ &&
           return describeBuiltInComponentFrame("SuspenseList");
         case 0:
         case 15:
-          return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+          return describeNativeComponentFrame(fiber.type, !1);
         case 11:
-          return (
-            (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-          );
+          return describeNativeComponentFrame(fiber.type.render, !1);
         case 1:
-          return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+          return describeNativeComponentFrame(fiber.type, !0);
         default:
           return "";
       }
@@ -421,6 +440,65 @@ __DEV__ &&
             }
           workInProgress = workInProgress.return;
         } while (workInProgress);
+        return info;
+      } catch (x) {
+        return "\nError generating stack: " + x.message + "\n" + x.stack;
+      }
+    }
+    function describeFunctionComponentFrameWithoutLineNumber(fn) {
+      return (fn = fn ? fn.displayName || fn.name : "")
+        ? describeBuiltInComponentFrame(fn)
+        : "";
+    }
+    function getOwnerStackByFiberInDev(workInProgress) {
+      if (!enableOwnerStacks) return "";
+      try {
+        var info = "";
+        6 === workInProgress.tag && (workInProgress = workInProgress.return);
+        switch (workInProgress.tag) {
+          case 26:
+          case 27:
+          case 5:
+            info += describeBuiltInComponentFrame(workInProgress.type);
+            break;
+          case 13:
+            info += describeBuiltInComponentFrame("Suspense");
+            break;
+          case 19:
+            info += describeBuiltInComponentFrame("SuspenseList");
+            break;
+          case 0:
+          case 15:
+          case 1:
+            workInProgress._debugOwner ||
+              "" !== info ||
+              (info += describeFunctionComponentFrameWithoutLineNumber(
+                workInProgress.type
+              ));
+            break;
+          case 11:
+            workInProgress._debugOwner ||
+              "" !== info ||
+              (info += describeFunctionComponentFrameWithoutLineNumber(
+                workInProgress.type.render
+              ));
+        }
+        for (; workInProgress; )
+          if ("number" === typeof workInProgress.tag) {
+            var fiber = workInProgress;
+            workInProgress = fiber._debugOwner;
+            var debugStack = fiber._debugStack;
+            workInProgress &&
+              debugStack &&
+              ("string" !== typeof debugStack &&
+                (fiber._debugStack = debugStack = formatOwnerStack(debugStack)),
+              "" !== debugStack && (info += "\n" + debugStack));
+          } else if (null != workInProgress.debugStack) {
+            var ownerStack = workInProgress.debugStack;
+            (workInProgress = workInProgress.owner) &&
+              ownerStack &&
+              (info += "\n" + formatOwnerStack(ownerStack));
+          } else break;
         return info;
       } catch (x) {
         return "\nError generating stack: " + x.message + "\n" + x.stack;
@@ -549,7 +627,11 @@ __DEV__ &&
       return null;
     }
     function getCurrentFiberStackInDev() {
-      return null === current ? "" : getStackByFiberInDevAndProd(current);
+      return null === current
+        ? ""
+        : enableOwnerStacks
+          ? getOwnerStackByFiberInDev(current)
+          : getStackByFiberInDevAndProd(current);
     }
     function runWithFiberInDEV(fiber, callback, arg0, arg1, arg2, arg3, arg4) {
       var previousFiber = current;
@@ -558,7 +640,11 @@ __DEV__ &&
       isRendering = !1;
       current = fiber;
       try {
-        return callback(arg0, arg1, arg2, arg3, arg4);
+        return enableOwnerStacks && null !== fiber && fiber._debugTask
+          ? fiber._debugTask.run(
+              callback.bind(null, arg0, arg1, arg2, arg3, arg4)
+            )
+          : callback(arg0, arg1, arg2, arg3, arg4);
       } finally {
         current = previousFiber;
       }
@@ -1086,11 +1172,30 @@ __DEV__ &&
             var i = 0;
             i < dispatchListeners.length && !e.isPropagationStopped();
             i++
-          )
-            executeDispatch(e, dispatchListeners[i], dispatchInstances[i]);
+          ) {
+            var listener = dispatchListeners[i],
+              instance = dispatchInstances[i];
+            enableOwnerStacks && null !== instance
+              ? runWithFiberInDEV(
+                  instance,
+                  executeDispatch,
+                  e,
+                  listener,
+                  instance
+                )
+              : executeDispatch(e, listener, instance);
+          }
         else
           dispatchListeners &&
-            executeDispatch(e, dispatchListeners, dispatchInstances);
+            (enableOwnerStacks && null !== dispatchInstances
+              ? runWithFiberInDEV(
+                  dispatchInstances,
+                  executeDispatch,
+                  e,
+                  dispatchListeners,
+                  dispatchInstances
+                )
+              : executeDispatch(e, dispatchListeners, dispatchInstances));
         e._dispatchListeners = null;
         e._dispatchInstances = null;
         e.isPersistent() || e.constructor.release(e);
@@ -3991,6 +4096,9 @@ __DEV__ &&
       }
       return workInProgressHook;
     }
+    function createFunctionComponentUpdateQueue() {
+      return { lastEffect: null, events: null, stores: null, memoCache: null };
+    }
     function useThenable(thenable) {
       var index = thenableIndexCounter$1;
       thenableIndexCounter$1 += 1;
@@ -5449,6 +5557,7 @@ __DEV__ &&
             )),
             (current.return = returnFiber),
             (current._debugOwner = returnFiber),
+            enableOwnerStacks && (current._debugTask = returnFiber._debugTask),
             (current._debugInfo = currentDebugInfo),
             current
           );
@@ -5523,6 +5632,7 @@ __DEV__ &&
             )),
             (current.return = returnFiber),
             (current._debugOwner = returnFiber),
+            enableOwnerStacks && (current._debugTask = returnFiber._debugTask),
             (current._debugInfo = currentDebugInfo),
             current
           );
@@ -5545,6 +5655,7 @@ __DEV__ &&
             )),
             (newChild.return = returnFiber),
             (newChild._debugOwner = returnFiber),
+            enableOwnerStacks && (newChild._debugTask = returnFiber._debugTask),
             (newChild._debugInfo = currentDebugInfo),
             newChild
           );
@@ -5592,6 +5703,7 @@ __DEV__ &&
               )),
               (lanes.return = returnFiber),
               (lanes._debugOwner = returnFiber),
+              enableOwnerStacks && (lanes._debugTask = returnFiber._debugTask),
               (returnFiber = pushDebugInfo(newChild._debugInfo)),
               (lanes._debugInfo = currentDebugInfo),
               (currentDebugInfo = returnFiber),
@@ -6121,6 +6233,8 @@ __DEV__ &&
                     )),
                     (lanes.return = returnFiber),
                     (lanes._debugOwner = returnFiber),
+                    enableOwnerStacks &&
+                      (lanes._debugTask = returnFiber._debugTask),
                     (lanes._debugInfo = currentDebugInfo),
                     validateFragmentProps(newChild, lanes, returnFiber),
                     (returnFiber = lanes))
@@ -6287,6 +6401,8 @@ __DEV__ &&
                 )),
                 (lanes.return = returnFiber),
                 (lanes._debugOwner = returnFiber),
+                enableOwnerStacks &&
+                  (lanes._debugTask = returnFiber._debugTask),
                 (lanes._debugInfo = currentDebugInfo),
                 (returnFiber = lanes)),
             placeSingleChild(returnFiber)
@@ -6324,10 +6440,13 @@ __DEV__ &&
           fiber.return = returnFiber;
           var debugInfo = (fiber._debugInfo = currentDebugInfo);
           fiber._debugOwner = returnFiber._debugOwner;
+          enableOwnerStacks && (fiber._debugTask = returnFiber._debugTask);
           if (null != debugInfo)
             for (var i = debugInfo.length - 1; 0 <= i; i--)
               if ("string" === typeof debugInfo[i].stack) {
                 fiber._debugOwner = debugInfo[i];
+                enableOwnerStacks &&
+                  (fiber._debugTask = debugInfo[i].debugTask);
                 break;
               }
           return fiber;
@@ -6848,12 +6967,14 @@ __DEV__ &&
       error = componentName
         ? "An error occurred in the <" + componentName + "> component."
         : "An error occurred in one of your React components.";
-      var prevGetCurrentStack = ReactSharedInternals.getCurrentStack,
-        componentStack =
+      var prevGetCurrentStack = ReactSharedInternals.getCurrentStack;
+      if (!enableOwnerStacks) {
+        var componentStack =
           null != errorInfo.componentStack ? errorInfo.componentStack : "";
-      ReactSharedInternals.getCurrentStack = function () {
-        return componentStack;
-      };
+        ReactSharedInternals.getCurrentStack = function () {
+          return componentStack;
+        };
+      }
       try {
         warn(
           "%s\n\n%s\n",
@@ -6861,7 +6982,8 @@ __DEV__ &&
           "Consider adding an error boundary to your tree to customize error handling behavior.\nVisit https://react.dev/link/error-boundaries to learn more about error boundaries."
         );
       } finally {
-        ReactSharedInternals.getCurrentStack = prevGetCurrentStack;
+        enableOwnerStacks ||
+          (ReactSharedInternals.getCurrentStack = prevGetCurrentStack);
       }
     }
     function defaultOnCaughtError(error$1, errorInfo) {
@@ -6871,12 +6993,14 @@ __DEV__ &&
         recreateMessage =
           "React will try to recreate this component tree from scratch using the error boundary you provided, " +
           ((errorBoundaryName || "Anonymous") + "."),
-        prevGetCurrentStack = ReactSharedInternals.getCurrentStack,
-        componentStack =
+        prevGetCurrentStack = ReactSharedInternals.getCurrentStack;
+      if (!enableOwnerStacks) {
+        var componentStack =
           null != errorInfo.componentStack ? errorInfo.componentStack : "";
-      ReactSharedInternals.getCurrentStack = function () {
-        return componentStack;
-      };
+        ReactSharedInternals.getCurrentStack = function () {
+          return componentStack;
+        };
+      }
       try {
         "object" === typeof error$1 &&
         null !== error$1 &&
@@ -6898,7 +7022,8 @@ __DEV__ &&
               recreateMessage
             );
       } finally {
-        ReactSharedInternals.getCurrentStack = prevGetCurrentStack;
+        enableOwnerStacks ||
+          (ReactSharedInternals.getCurrentStack = prevGetCurrentStack);
       }
     }
     function defaultOnRecoverableError(error) {
@@ -8651,6 +8776,9 @@ __DEV__ &&
           workInProgress.mode,
           workInProgress.lanes
         );
+        enableOwnerStacks &&
+          ((renderLanes._debugStack = workInProgress._debugStack),
+          (renderLanes._debugTask = workInProgress._debugTask));
         var returnFiber = workInProgress.return;
         if (null === returnFiber) throw Error("Cannot swap the root fiber.");
         current.alternate = null;
@@ -13972,6 +14100,7 @@ __DEV__ &&
       this.actualStartTime = -1.1;
       this.treeBaseDuration = this.selfBaseDuration = -0;
       this._debugOwner = this._debugInfo = null;
+      enableOwnerStacks && (this._debugTask = this._debugStack = null);
       this._debugNeedsRemount = !1;
       this._debugHookTypes = null;
       hasBadMapPolyfill ||
@@ -14011,10 +14140,11 @@ __DEV__ &&
         selfBaseDuration: -0,
         treeBaseDuration: -0,
         _debugInfo: null,
-        _debugOwner: null,
-        _debugNeedsRemount: !1,
-        _debugHookTypes: null
+        _debugOwner: null
       };
+      enableOwnerStacks && ((tag._debugStack = null), (tag._debugTask = null));
+      tag._debugNeedsRemount = !1;
+      tag._debugHookTypes = null;
       hasBadMapPolyfill ||
         "function" !== typeof Object.preventExtensions ||
         Object.preventExtensions(tag);
@@ -14037,6 +14167,9 @@ __DEV__ &&
           (workInProgress.type = current.type),
           (workInProgress.stateNode = current.stateNode),
           (workInProgress._debugOwner = current._debugOwner),
+          enableOwnerStacks &&
+            ((workInProgress._debugStack = current._debugStack),
+            (workInProgress._debugTask = current._debugTask)),
           (workInProgress._debugHookTypes = current._debugHookTypes),
           (workInProgress.alternate = current),
           (current.alternate = workInProgress))
@@ -14257,6 +14390,9 @@ __DEV__ &&
         lanes
       );
       mode._debugOwner = element._owner;
+      enableOwnerStacks &&
+        ((mode._debugStack = element._debugStack),
+        (mode._debugTask = element._debugTask));
       return mode;
     }
     function createFiberFromFragment(elements, mode, lanes, key) {
@@ -14600,8 +14736,8 @@ __DEV__ &&
       __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
     require("react-native/Libraries/ReactPrivate/ReactNativePrivateInitializeCore");
     var React = require("react"),
-      ReactNativePrivateInterface = require("react-native/Libraries/ReactPrivate/ReactNativePrivateInterface"),
       dynamicFlagsUntyped = require("ReactNativeInternalFeatureFlags"),
+      ReactNativePrivateInterface = require("react-native/Libraries/ReactPrivate/ReactNativePrivateInterface"),
       Scheduler = require("scheduler"),
       ReactSharedInternals =
         React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
@@ -14616,6 +14752,7 @@ __DEV__ &&
       enableUseResourceEffectHook =
         dynamicFlagsUntyped.enableUseResourceEffectHook,
       enableSiblingPrerendering = dynamicFlagsUntyped.enableSiblingPrerendering,
+      enableOwnerStacks = dynamicFlagsUntyped.enableOwnerStacks,
       REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
       REACT_ELEMENT_TYPE = REACT_LEGACY_ELEMENT_TYPE,
       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
@@ -14631,7 +14768,6 @@ __DEV__ &&
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy");
     Symbol.for("react.scope");
-    Symbol.for("react.debug_trace_mode");
     var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
     Symbol.for("react.legacy_hidden");
     Symbol.for("react.tracing_marker");
@@ -15891,37 +16027,34 @@ __DEV__ &&
       currentHookNameInDev = null,
       hookTypesDev = null,
       hookTypesUpdateIndexDev = -1,
-      ignorePreviousDependencies = !1;
-    var createFunctionComponentUpdateQueue = function () {
-      return { lastEffect: null, events: null, stores: null, memoCache: null };
-    };
-    var ContextOnlyDispatcher = {
-      readContext: readContext,
-      use: use,
-      useCallback: throwInvalidHookError,
-      useContext: throwInvalidHookError,
-      useEffect: throwInvalidHookError,
-      useImperativeHandle: throwInvalidHookError,
-      useLayoutEffect: throwInvalidHookError,
-      useInsertionEffect: throwInvalidHookError,
-      useMemo: throwInvalidHookError,
-      useReducer: throwInvalidHookError,
-      useRef: throwInvalidHookError,
-      useState: throwInvalidHookError,
-      useDebugValue: throwInvalidHookError,
-      useDeferredValue: throwInvalidHookError,
-      useTransition: throwInvalidHookError,
-      useSyncExternalStore: throwInvalidHookError,
-      useId: throwInvalidHookError
-    };
-    ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-    ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
+      ignorePreviousDependencies = !1,
+      ContextOnlyDispatcher = {
+        readContext: readContext,
+        use: use,
+        useCallback: throwInvalidHookError,
+        useContext: throwInvalidHookError,
+        useEffect: throwInvalidHookError,
+        useImperativeHandle: throwInvalidHookError,
+        useLayoutEffect: throwInvalidHookError,
+        useInsertionEffect: throwInvalidHookError,
+        useMemo: throwInvalidHookError,
+        useReducer: throwInvalidHookError,
+        useRef: throwInvalidHookError,
+        useState: throwInvalidHookError,
+        useDebugValue: throwInvalidHookError,
+        useDeferredValue: throwInvalidHookError,
+        useTransition: throwInvalidHookError,
+        useSyncExternalStore: throwInvalidHookError,
+        useId: throwInvalidHookError,
+        useHostTransitionStatus: throwInvalidHookError,
+        useFormState: throwInvalidHookError,
+        useActionState: throwInvalidHookError,
+        useOptimistic: throwInvalidHookError,
+        useMemoCache: throwInvalidHookError,
+        useCacheRefresh: throwInvalidHookError
+      };
     enableUseResourceEffectHook &&
       (ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError);
-    ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-    ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-    ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-    ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
     var HooksDispatcherOnMountInDEV = null,
       HooksDispatcherOnMountWithHookTypesInDEV = null,
       HooksDispatcherOnUpdateInDEV = null,
@@ -16032,13 +16165,30 @@ __DEV__ &&
         mountHookTypesDev();
         return mountId();
       },
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        mountHookTypesDev();
+        warnOnUseFormStateInDev();
+        return mountActionState(action, initialState);
+      },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        mountHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        mountHookTypesDev();
+        return mountOptimistic(passthrough);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         mountHookTypesDev();
         return mountRefresh();
       }
     };
-    HooksDispatcherOnMountInDEV.useMemoCache = useMemoCache;
     enableUseResourceEffectHook &&
       (HooksDispatcherOnMountInDEV.useResourceEffect = function (
         create,
@@ -16065,27 +16215,6 @@ __DEV__ &&
           destroy
         );
       });
-    HooksDispatcherOnMountInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnMountInDEV.useFormState = function (action, initialState) {
-      currentHookNameInDev = "useFormState";
-      mountHookTypesDev();
-      warnOnUseFormStateInDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountInDEV.useOptimistic = function (passthrough) {
-      currentHookNameInDev = "useOptimistic";
-      mountHookTypesDev();
-      return mountOptimistic(passthrough);
-    };
     HooksDispatcherOnMountWithHookTypesInDEV = {
       readContext: function (context) {
         return readContext(context);
@@ -16183,13 +16312,30 @@ __DEV__ &&
         updateHookTypesDev();
         return mountId();
       },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return mountOptimistic(passthrough);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return mountRefresh();
       }
     };
-    HooksDispatcherOnMountWithHookTypesInDEV.useMemoCache = useMemoCache;
     enableUseResourceEffectHook &&
       (HooksDispatcherOnMountWithHookTypesInDEV.useResourceEffect = function (
         create,
@@ -16208,32 +16354,6 @@ __DEV__ &&
           destroy
         );
       });
-    HooksDispatcherOnMountWithHookTypesInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnMountWithHookTypesInDEV.useFormState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    HooksDispatcherOnMountWithHookTypesInDEV.useOptimistic = function (
-      passthrough
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return mountOptimistic(passthrough);
-    };
     HooksDispatcherOnUpdateInDEV = {
       readContext: function (context) {
         return readContext(context);
@@ -16331,13 +16451,30 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return updateActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return updateActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return updateOptimistic(passthrough, reducer);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       }
     };
-    HooksDispatcherOnUpdateInDEV.useMemoCache = useMemoCache;
     enableUseResourceEffectHook &&
       (HooksDispatcherOnUpdateInDEV.useResourceEffect = function (
         create,
@@ -16358,27 +16495,6 @@ __DEV__ &&
           destroy
         );
       });
-    HooksDispatcherOnUpdateInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnUpdateInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return updateActionState(action);
-    };
-    HooksDispatcherOnUpdateInDEV.useActionState = function (action) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    HooksDispatcherOnUpdateInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return updateOptimistic(passthrough, reducer);
-    };
     HooksDispatcherOnRerenderInDEV = {
       readContext: function (context) {
         return readContext(context);
@@ -16476,13 +16592,30 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        updateHookTypesDev();
+        warnOnUseFormStateInDev();
+        return rerenderActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        updateHookTypesDev();
+        return rerenderActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        updateHookTypesDev();
+        return rerenderOptimistic(passthrough, reducer);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useMemoCache: useMemoCache,
       useCacheRefresh: function () {
         currentHookNameInDev = "useCacheRefresh";
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       }
     };
-    HooksDispatcherOnRerenderInDEV.useMemoCache = useMemoCache;
     enableUseResourceEffectHook &&
       (HooksDispatcherOnRerenderInDEV.useResourceEffect = function (
         create,
@@ -16503,27 +16636,6 @@ __DEV__ &&
           destroy
         );
       });
-    HooksDispatcherOnRerenderInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    HooksDispatcherOnRerenderInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      updateHookTypesDev();
-      warnOnUseFormStateInDev();
-      return rerenderActionState(action);
-    };
-    HooksDispatcherOnRerenderInDEV.useActionState = function (action) {
-      currentHookNameInDev = "useActionState";
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    HooksDispatcherOnRerenderInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      updateHookTypesDev();
-      return rerenderOptimistic(passthrough, reducer);
-    };
     InvalidNestedHooksDispatcherOnMountInDEV = {
       readContext: function (context) {
         warnInvalidContextAccess();
@@ -16640,14 +16752,33 @@ __DEV__ &&
         mountHookTypesDev();
         return mountId();
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action, initialState) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         mountHookTypesDev();
-        return mountRefresh();
+        return mountActionState(action, initialState);
+      },
+      useActionState: function (action, initialState) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        mountHookTypesDev();
+        return mountActionState(action, initialState);
+      },
+      useOptimistic: function (passthrough) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        mountHookTypesDev();
+        return mountOptimistic(passthrough);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        mountHookTypesDev();
+        return mountRefresh();
       }
     };
     enableUseResourceEffectHook &&
@@ -16669,34 +16800,6 @@ __DEV__ &&
           destroy
         );
       });
-    InvalidNestedHooksDispatcherOnMountInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnMountInDEV.useFormState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    InvalidNestedHooksDispatcherOnMountInDEV.useActionState = function (
-      action,
-      initialState
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountActionState(action, initialState);
-    };
-    InvalidNestedHooksDispatcherOnMountInDEV.useOptimistic = function (
-      passthrough
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      mountHookTypesDev();
-      return mountOptimistic(passthrough);
-    };
     InvalidNestedHooksDispatcherOnUpdateInDEV = {
       readContext: function (context) {
         warnInvalidContextAccess();
@@ -16813,14 +16916,33 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         updateHookTypesDev();
-        return updateWorkInProgressHook().memoizedState;
+        return updateActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return updateActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return updateOptimistic(passthrough, reducer);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        updateHookTypesDev();
+        return updateWorkInProgressHook().memoizedState;
       }
     };
     enableUseResourceEffectHook &&
@@ -16844,31 +16966,6 @@ __DEV__ &&
           destroy
         );
       });
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useFormState = function (action) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useActionState = function (
-      action
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnUpdateInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return updateOptimistic(passthrough, reducer);
-    };
     InvalidNestedHooksDispatcherOnRerenderInDEV = {
       readContext: function (context) {
         warnInvalidContextAccess();
@@ -16985,14 +17082,33 @@ __DEV__ &&
         updateHookTypesDev();
         return updateWorkInProgressHook().memoizedState;
       },
-      useCacheRefresh: function () {
-        currentHookNameInDev = "useCacheRefresh";
+      useFormState: function (action) {
+        currentHookNameInDev = "useFormState";
+        warnInvalidHookAccess();
         updateHookTypesDev();
-        return updateWorkInProgressHook().memoizedState;
+        return rerenderActionState(action);
+      },
+      useActionState: function (action) {
+        currentHookNameInDev = "useActionState";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return rerenderActionState(action);
+      },
+      useOptimistic: function (passthrough, reducer) {
+        currentHookNameInDev = "useOptimistic";
+        warnInvalidHookAccess();
+        updateHookTypesDev();
+        return rerenderOptimistic(passthrough, reducer);
       },
       useMemoCache: function (size) {
         warnInvalidHookAccess();
         return useMemoCache(size);
+      },
+      useHostTransitionStatus: useHostTransitionStatus,
+      useCacheRefresh: function () {
+        currentHookNameInDev = "useCacheRefresh";
+        updateHookTypesDev();
+        return updateWorkInProgressHook().memoizedState;
       }
     };
     enableUseResourceEffectHook &&
@@ -17011,33 +17127,6 @@ __DEV__ &&
             destroy
           );
         });
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useHostTransitionStatus =
-      useHostTransitionStatus;
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useFormState = function (
-      action
-    ) {
-      currentHookNameInDev = "useFormState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useActionState = function (
-      action
-    ) {
-      currentHookNameInDev = "useActionState";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderActionState(action);
-    };
-    InvalidNestedHooksDispatcherOnRerenderInDEV.useOptimistic = function (
-      passthrough,
-      reducer
-    ) {
-      currentHookNameInDev = "useOptimistic";
-      warnInvalidHookAccess();
-      updateHookTypesDev();
-      return rerenderOptimistic(passthrough, reducer);
-    };
     var callComponent = {
         "react-stack-bottom-frame": function (Component, props, secondArg) {
           var wasRendering = isRendering;
@@ -17602,11 +17691,11 @@ __DEV__ &&
       shouldSuspendImpl = newShouldSuspendImpl;
     };
     var isomorphicReactPackageVersion = React.version;
-    if ("19.0.0-native-fb-7283a213-20241206" !== isomorphicReactPackageVersion)
+    if ("19.1.0-native-fb-d4287258-20241217" !== isomorphicReactPackageVersion)
       throw Error(
         'Incompatible React versions: The "react" and "react-native-renderer" packages must have the exact same version. Instead got:\n  - react:                  ' +
           (isomorphicReactPackageVersion +
-            "\n  - react-native-renderer:  19.0.0-native-fb-7283a213-20241206\nLearn more: https://react.dev/warnings/version-mismatch")
+            "\n  - react-native-renderer:  19.1.0-native-fb-d4287258-20241217\nLearn more: https://react.dev/warnings/version-mismatch")
       );
     if (
       "function" !==
@@ -17632,11 +17721,10 @@ __DEV__ &&
     (function () {
       var internals = {
         bundleType: 1,
-        version: "19.0.0-native-fb-7283a213-20241206",
+        version: "19.1.0-native-fb-d4287258-20241217",
         rendererPackageName: "react-native-renderer",
         currentDispatcherRef: ReactSharedInternals,
-        findFiberByHostInstance: getInstanceFromTag,
-        reconcilerVersion: "19.0.0-native-fb-7283a213-20241206"
+        reconcilerVersion: "19.1.0-native-fb-d4287258-20241217"
       };
       null !== extraDevToolsConfig &&
         (internals.rendererConfig = extraDevToolsConfig);

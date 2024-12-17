@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<08d63a4133fba7db5b8c3375b38d9d5d>>
+ * @generated SignedSource<<58debbbcaf0045517e17bdd174a463cf>>
  */
 
 "use strict";
@@ -26,7 +26,6 @@ var enableUseResourceEffectHook =
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy"),
   REACT_SCOPE_TYPE = Symbol.for("react.scope"),
-  REACT_DEBUG_TRACING_MODE_TYPE = Symbol.for("react.debug_trace_mode"),
   REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
   REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
   REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
@@ -405,6 +404,7 @@ exports.cache = function (fn) {
     return fn.apply(null, arguments);
   };
 };
+exports.captureOwnerStack = void 0;
 exports.cloneElement = function (element, config, children) {
   if (null === element || void 0 === element)
     throw Error(
@@ -520,7 +520,6 @@ exports.startTransition = function (scope) {
   }
 };
 exports.unstable_Activity = REACT_OFFSCREEN_TYPE;
-exports.unstable_DebugTracingMode = REACT_DEBUG_TRACING_MODE_TYPE;
 exports.unstable_LegacyHidden = REACT_LEGACY_HIDDEN_TYPE;
 exports.unstable_Scope = REACT_SCOPE_TYPE;
 exports.unstable_SuspenseList = REACT_SUSPENSE_LIST_TYPE;
@@ -531,9 +530,6 @@ exports.unstable_getCacheForType = function (resourceType) {
 };
 exports.unstable_useCacheRefresh = function () {
   return ReactSharedInternals.H.useCacheRefresh();
-};
-exports.unstable_useContextWithBailout = function () {
-  throw Error("Not implemented.");
 };
 exports.unstable_useMemoCache = useMemoCache;
 exports.use = function (usable) {
@@ -596,4 +592,4 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.0.0-native-fb-7283a213-20241206";
+exports.version = "19.1.0-native-fb-d4287258-20241217";

@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<d7730663dfc24b7c2839ca287eebfc1f>>
+ * @generated SignedSource<<42833538eb0c93969d4abdb97ac0625e>>
  */
 
 "use strict";
@@ -50,7 +50,6 @@ var ReactNativePrivateInterface = require("react-native/Libraries/ReactPrivate/R
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy");
 Symbol.for("react.scope");
-Symbol.for("react.debug_trace_mode");
 var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
 Symbol.for("react.legacy_hidden");
 Symbol.for("react.tracing_marker");
@@ -230,13 +229,11 @@ function describeFiber(fiber) {
       return describeBuiltInComponentFrame("SuspenseList");
     case 0:
     case 15:
-      return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+      return describeNativeComponentFrame(fiber.type, !1);
     case 11:
-      return (
-        (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-      );
+      return describeNativeComponentFrame(fiber.type.render, !1);
     case 1:
-      return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+      return describeNativeComponentFrame(fiber.type, !0);
     default:
       return "";
   }
@@ -1237,7 +1234,7 @@ eventPluginOrder = Array.prototype.slice.call([
   "ReactNativeBridgeEventPlugin"
 ]);
 recomputePluginOrdering();
-var injectedNamesToPlugins$jscomp$inline_304 = {
+var injectedNamesToPlugins$jscomp$inline_295 = {
     ResponderEventPlugin: ResponderEventPlugin,
     ReactNativeBridgeEventPlugin: {
       eventTypes: {},
@@ -1283,32 +1280,32 @@ var injectedNamesToPlugins$jscomp$inline_304 = {
       }
     }
   },
-  isOrderingDirty$jscomp$inline_305 = !1,
-  pluginName$jscomp$inline_306;
-for (pluginName$jscomp$inline_306 in injectedNamesToPlugins$jscomp$inline_304)
+  isOrderingDirty$jscomp$inline_296 = !1,
+  pluginName$jscomp$inline_297;
+for (pluginName$jscomp$inline_297 in injectedNamesToPlugins$jscomp$inline_295)
   if (
-    injectedNamesToPlugins$jscomp$inline_304.hasOwnProperty(
-      pluginName$jscomp$inline_306
+    injectedNamesToPlugins$jscomp$inline_295.hasOwnProperty(
+      pluginName$jscomp$inline_297
     )
   ) {
-    var pluginModule$jscomp$inline_307 =
-      injectedNamesToPlugins$jscomp$inline_304[pluginName$jscomp$inline_306];
+    var pluginModule$jscomp$inline_298 =
+      injectedNamesToPlugins$jscomp$inline_295[pluginName$jscomp$inline_297];
     if (
-      !namesToPlugins.hasOwnProperty(pluginName$jscomp$inline_306) ||
-      namesToPlugins[pluginName$jscomp$inline_306] !==
-        pluginModule$jscomp$inline_307
+      !namesToPlugins.hasOwnProperty(pluginName$jscomp$inline_297) ||
+      namesToPlugins[pluginName$jscomp$inline_297] !==
+        pluginModule$jscomp$inline_298
     ) {
-      if (namesToPlugins[pluginName$jscomp$inline_306])
+      if (namesToPlugins[pluginName$jscomp$inline_297])
         throw Error(
           "EventPluginRegistry: Cannot inject two different event plugins using the same name, `" +
-            (pluginName$jscomp$inline_306 + "`.")
+            (pluginName$jscomp$inline_297 + "`.")
         );
-      namesToPlugins[pluginName$jscomp$inline_306] =
-        pluginModule$jscomp$inline_307;
-      isOrderingDirty$jscomp$inline_305 = !0;
+      namesToPlugins[pluginName$jscomp$inline_297] =
+        pluginModule$jscomp$inline_298;
+      isOrderingDirty$jscomp$inline_296 = !0;
     }
   }
-isOrderingDirty$jscomp$inline_305 && recomputePluginOrdering();
+isOrderingDirty$jscomp$inline_296 && recomputePluginOrdering();
 var emptyObject$1 = {},
   removedKeys = null,
   removedKeyCount = 0,
@@ -3219,10 +3216,9 @@ function updateWorkInProgressHook() {
   }
   return workInProgressHook;
 }
-var createFunctionComponentUpdateQueue;
-createFunctionComponentUpdateQueue = function () {
+function createFunctionComponentUpdateQueue() {
   return { lastEffect: null, events: null, stores: null, memoCache: null };
-};
+}
 function useThenable(thenable) {
   var index = thenableIndexCounter$1;
   thenableIndexCounter$1 += 1;
@@ -4158,16 +4154,16 @@ var ContextOnlyDispatcher = {
   useDeferredValue: throwInvalidHookError,
   useTransition: throwInvalidHookError,
   useSyncExternalStore: throwInvalidHookError,
-  useId: throwInvalidHookError
+  useId: throwInvalidHookError,
+  useHostTransitionStatus: throwInvalidHookError,
+  useFormState: throwInvalidHookError,
+  useActionState: throwInvalidHookError,
+  useOptimistic: throwInvalidHookError,
+  useMemoCache: throwInvalidHookError,
+  useCacheRefresh: throwInvalidHookError
 };
-ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
 enableUseResourceEffectHook &&
   (ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError);
-ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
 var HooksDispatcherOnMount = {
   readContext: readContext,
   use: use,
@@ -4301,6 +4297,30 @@ var HooksDispatcherOnMount = {
       ":" + identifierPrefix + "r" + globalClientId.toString(32) + ":";
     return (hook.memoizedState = identifierPrefix);
   },
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: mountActionState,
+  useActionState: mountActionState,
+  useOptimistic: function (passthrough) {
+    var hook = mountWorkInProgressHook();
+    hook.memoizedState = hook.baseState = passthrough;
+    var queue = {
+      pending: null,
+      lanes: 0,
+      dispatch: null,
+      lastRenderedReducer: null,
+      lastRenderedState: null
+    };
+    hook.queue = queue;
+    hook = dispatchOptimisticSetState.bind(
+      null,
+      currentlyRenderingFiber$1,
+      !0,
+      queue
+    );
+    queue.dispatch = hook;
+    return [passthrough, hook];
+  },
+  useMemoCache: useMemoCache,
   useCacheRefresh: function () {
     return (mountWorkInProgressHook().memoizedState = refreshCache.bind(
       null,
@@ -4308,32 +4328,8 @@ var HooksDispatcherOnMount = {
     ));
   }
 };
-HooksDispatcherOnMount.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnMount.useResourceEffect = mountResourceEffect);
-HooksDispatcherOnMount.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnMount.useFormState = mountActionState;
-HooksDispatcherOnMount.useActionState = mountActionState;
-HooksDispatcherOnMount.useOptimistic = function (passthrough) {
-  var hook = mountWorkInProgressHook();
-  hook.memoizedState = hook.baseState = passthrough;
-  var queue = {
-    pending: null,
-    lanes: 0,
-    dispatch: null,
-    lastRenderedReducer: null,
-    lastRenderedState: null
-  };
-  hook.queue = queue;
-  hook = dispatchOptimisticSetState.bind(
-    null,
-    currentlyRenderingFiber$1,
-    !0,
-    queue
-  );
-  queue.dispatch = hook;
-  return [passthrough, hook];
-};
 var HooksDispatcherOnUpdate = {
   readContext: readContext,
   use: use,
@@ -4370,19 +4366,19 @@ var HooksDispatcherOnUpdate = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: updateActionState,
+  useActionState: updateActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnUpdate.useCacheRefresh = updateRefresh;
-HooksDispatcherOnUpdate.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnUpdate.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnUpdate.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnUpdate.useFormState = updateActionState;
-HooksDispatcherOnUpdate.useActionState = updateActionState;
-HooksDispatcherOnUpdate.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-};
 var HooksDispatcherOnRerender = {
   readContext: readContext,
   use: use,
@@ -4421,22 +4417,22 @@ var HooksDispatcherOnRerender = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: rerenderActionState,
+  useActionState: rerenderActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    if (null !== currentHook)
+      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+    hook.baseState = passthrough;
+    return [passthrough, hook.queue.dispatch];
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnRerender.useCacheRefresh = updateRefresh;
-HooksDispatcherOnRerender.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnRerender.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnRerender.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnRerender.useFormState = rerenderActionState;
-HooksDispatcherOnRerender.useActionState = rerenderActionState;
-HooksDispatcherOnRerender.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  if (null !== currentHook)
-    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-  hook.baseState = passthrough;
-  return [passthrough, hook.queue.dispatch];
-};
 var thenableState = null,
   thenableIndexCounter = 0;
 function unwrapThenable(thenable) {
@@ -11687,15 +11683,14 @@ var HostTransitionContext = {
     !!RN$enableMicrotasksInReact,
   scheduleMicrotask =
     "function" === typeof queueMicrotask ? queueMicrotask : scheduleTimeout;
-function getInstanceFromNode(node) {
-  return null != node.canonical && null != node.canonical.internalInstanceHandle
-    ? node.canonical.internalInstanceHandle
-    : node;
-}
 getFiberCurrentPropsFromNode$1 = function (instance) {
   return instance.canonical.currentProps;
 };
-getInstanceFromNode$1 = getInstanceFromNode;
+getInstanceFromNode$1 = function (node) {
+  return null != node.canonical && null != node.canonical.internalInstanceHandle
+    ? node.canonical.internalInstanceHandle
+    : node;
+};
 getNodeFromInstance$1 = function (fiber) {
   fiber = getPublicInstance(fiber.stateNode);
   if (null == fiber) throw Error("Could not find host instance from fiber");
@@ -11757,17 +11752,16 @@ batchedUpdatesImpl = function (fn, a) {
   }
 };
 var roots = new Map(),
-  internals$jscomp$inline_1307 = {
+  internals$jscomp$inline_1298 = {
     bundleType: 0,
-    version: "19.0.0-native-fb-7283a213-20241206",
+    version: "19.1.0-native-fb-d4287258-20241217",
     rendererPackageName: "react-native-renderer",
     currentDispatcherRef: ReactSharedInternals,
-    findFiberByHostInstance: getInstanceFromNode,
-    reconcilerVersion: "19.0.0-native-fb-7283a213-20241206"
+    reconcilerVersion: "19.1.0-native-fb-d4287258-20241217"
   };
 null !== extraDevToolsConfig &&
-  (internals$jscomp$inline_1307.rendererConfig = extraDevToolsConfig);
-internals$jscomp$inline_1307.getLaneLabelMap = function () {
+  (internals$jscomp$inline_1298.rendererConfig = extraDevToolsConfig);
+internals$jscomp$inline_1298.getLaneLabelMap = function () {
   for (
     var map = new Map(), lane = 1, index$154 = 0;
     31 > index$154;
@@ -11779,20 +11773,20 @@ internals$jscomp$inline_1307.getLaneLabelMap = function () {
   }
   return map;
 };
-internals$jscomp$inline_1307.injectProfilingHooks = function (profilingHooks) {
+internals$jscomp$inline_1298.injectProfilingHooks = function (profilingHooks) {
   injectedProfilingHooks = profilingHooks;
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
-  var hook$jscomp$inline_1586 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
+  var hook$jscomp$inline_1577 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (
-    !hook$jscomp$inline_1586.isDisabled &&
-    hook$jscomp$inline_1586.supportsFiber
+    !hook$jscomp$inline_1577.isDisabled &&
+    hook$jscomp$inline_1577.supportsFiber
   )
     try {
-      (rendererID = hook$jscomp$inline_1586.inject(
-        internals$jscomp$inline_1307
+      (rendererID = hook$jscomp$inline_1577.inject(
+        internals$jscomp$inline_1298
       )),
-        (injectedHook = hook$jscomp$inline_1586);
+        (injectedHook = hook$jscomp$inline_1577);
     } catch (err) {}
 }
 exports.createPortal = function (children, containerTag) {

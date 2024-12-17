@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<319cb5da1e9ac0886a1c65c923217f20>>
+ * @generated SignedSource<<921ba538ee001d2e2ff89934b5513f72>>
  */
 
 /*
@@ -61,7 +61,6 @@ var REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy");
 Symbol.for("react.scope");
-Symbol.for("react.debug_trace_mode");
 var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
 Symbol.for("react.legacy_hidden");
 Symbol.for("react.tracing_marker");
@@ -352,13 +351,11 @@ function describeFiber(fiber) {
       return describeBuiltInComponentFrame("SuspenseList");
     case 0:
     case 15:
-      return (fiber = describeNativeComponentFrame(fiber.type, !1)), fiber;
+      return describeNativeComponentFrame(fiber.type, !1);
     case 11:
-      return (
-        (fiber = describeNativeComponentFrame(fiber.type.render, !1)), fiber
-      );
+      return describeNativeComponentFrame(fiber.type.render, !1);
     case 1:
-      return (fiber = describeNativeComponentFrame(fiber.type, !0)), fiber;
+      return describeNativeComponentFrame(fiber.type, !0);
     default:
       return "";
   }
@@ -907,6 +904,46 @@ function markRootEntangled(root, entangledLanes) {
     rootEntangledLanes &= ~lane;
   }
 }
+function getBumpedLaneForHydrationByLane(lane) {
+  switch (lane) {
+    case 2:
+      lane = 1;
+      break;
+    case 8:
+      lane = 4;
+      break;
+    case 32:
+      lane = 16;
+      break;
+    case 128:
+    case 256:
+    case 512:
+    case 1024:
+    case 2048:
+    case 4096:
+    case 8192:
+    case 16384:
+    case 32768:
+    case 65536:
+    case 131072:
+    case 262144:
+    case 524288:
+    case 1048576:
+    case 2097152:
+    case 4194304:
+    case 8388608:
+    case 16777216:
+    case 33554432:
+      lane = 64;
+      break;
+    case 268435456:
+      lane = 134217728;
+      break;
+    default:
+      lane = 0;
+  }
+  return lane;
+}
 function addFiberToLanesMap(root, fiber, lanes) {
   if (isDevToolsPresent)
     for (root = root.pendingUpdatersLaneMap; 0 < lanes; ) {
@@ -1053,12 +1090,7 @@ function registerDirectEvent(registrationName, dependencies) {
   )
     allNativeEvents.add(dependencies[registrationName]);
 }
-var canUseDOM = !(
-    "undefined" === typeof window ||
-    "undefined" === typeof window.document ||
-    "undefined" === typeof window.document.createElement
-  ),
-  VALID_ATTRIBUTE_NAME_REGEX = RegExp(
+var VALID_ATTRIBUTE_NAME_REGEX = RegExp(
     "^[:A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD][:A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040]*$"
   ),
   illegalAttributeNameCache = {},
@@ -1680,7 +1712,12 @@ function getListener(inst, registrationName) {
     );
   return stateNode;
 }
-var passiveBrowserEventsSupported = !1;
+var canUseDOM = !(
+    "undefined" === typeof window ||
+    "undefined" === typeof window.document ||
+    "undefined" === typeof window.document.createElement
+  ),
+  passiveBrowserEventsSupported = !1;
 if (canUseDOM)
   try {
     var options = {};
@@ -2167,19 +2204,19 @@ function getTargetInstForChangeEvent(domEventName, targetInst) {
 }
 var isInputEventSupported = !1;
 if (canUseDOM) {
-  var JSCompiler_inline_result$jscomp$311;
+  var JSCompiler_inline_result$jscomp$308;
   if (canUseDOM) {
-    var isSupported$jscomp$inline_444 = "oninput" in document;
-    if (!isSupported$jscomp$inline_444) {
-      var element$jscomp$inline_445 = document.createElement("div");
-      element$jscomp$inline_445.setAttribute("oninput", "return;");
-      isSupported$jscomp$inline_444 =
-        "function" === typeof element$jscomp$inline_445.oninput;
+    var isSupported$jscomp$inline_435 = "oninput" in document;
+    if (!isSupported$jscomp$inline_435) {
+      var element$jscomp$inline_436 = document.createElement("div");
+      element$jscomp$inline_436.setAttribute("oninput", "return;");
+      isSupported$jscomp$inline_435 =
+        "function" === typeof element$jscomp$inline_436.oninput;
     }
-    JSCompiler_inline_result$jscomp$311 = isSupported$jscomp$inline_444;
-  } else JSCompiler_inline_result$jscomp$311 = !1;
+    JSCompiler_inline_result$jscomp$308 = isSupported$jscomp$inline_435;
+  } else JSCompiler_inline_result$jscomp$308 = !1;
   isInputEventSupported =
-    JSCompiler_inline_result$jscomp$311 &&
+    JSCompiler_inline_result$jscomp$308 &&
     (!document.documentMode || 9 < document.documentMode);
 }
 function stopWatchingForValueChange() {
@@ -3364,10 +3401,9 @@ function updateWorkInProgressHook() {
   }
   return workInProgressHook;
 }
-var createFunctionComponentUpdateQueue;
-createFunctionComponentUpdateQueue = function () {
+function createFunctionComponentUpdateQueue() {
   return { lastEffect: null, events: null, stores: null, memoCache: null };
-};
+}
 function useThenable(thenable) {
   var index = thenableIndexCounter$1;
   thenableIndexCounter$1 += 1;
@@ -4406,16 +4442,16 @@ var ContextOnlyDispatcher = {
   useDeferredValue: throwInvalidHookError,
   useTransition: throwInvalidHookError,
   useSyncExternalStore: throwInvalidHookError,
-  useId: throwInvalidHookError
+  useId: throwInvalidHookError,
+  useHostTransitionStatus: throwInvalidHookError,
+  useFormState: throwInvalidHookError,
+  useActionState: throwInvalidHookError,
+  useOptimistic: throwInvalidHookError,
+  useMemoCache: throwInvalidHookError,
+  useCacheRefresh: throwInvalidHookError
 };
-ContextOnlyDispatcher.useCacheRefresh = throwInvalidHookError;
-ContextOnlyDispatcher.useMemoCache = throwInvalidHookError;
 enableUseResourceEffectHook &&
   (ContextOnlyDispatcher.useResourceEffect = throwInvalidHookError);
-ContextOnlyDispatcher.useHostTransitionStatus = throwInvalidHookError;
-ContextOnlyDispatcher.useFormState = throwInvalidHookError;
-ContextOnlyDispatcher.useActionState = throwInvalidHookError;
-ContextOnlyDispatcher.useOptimistic = throwInvalidHookError;
 var HooksDispatcherOnMount = {
   readContext: readContext,
   use: use,
@@ -4576,6 +4612,30 @@ var HooksDispatcherOnMount = {
           ":");
     return (hook.memoizedState = identifierPrefix);
   },
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: mountActionState,
+  useActionState: mountActionState,
+  useOptimistic: function (passthrough) {
+    var hook = mountWorkInProgressHook();
+    hook.memoizedState = hook.baseState = passthrough;
+    var queue = {
+      pending: null,
+      lanes: 0,
+      dispatch: null,
+      lastRenderedReducer: null,
+      lastRenderedState: null
+    };
+    hook.queue = queue;
+    hook = dispatchOptimisticSetState.bind(
+      null,
+      currentlyRenderingFiber$1,
+      !0,
+      queue
+    );
+    queue.dispatch = hook;
+    return [passthrough, hook];
+  },
+  useMemoCache: useMemoCache,
   useCacheRefresh: function () {
     return (mountWorkInProgressHook().memoizedState = refreshCache.bind(
       null,
@@ -4583,32 +4643,8 @@ var HooksDispatcherOnMount = {
     ));
   }
 };
-HooksDispatcherOnMount.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnMount.useResourceEffect = mountResourceEffect);
-HooksDispatcherOnMount.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnMount.useFormState = mountActionState;
-HooksDispatcherOnMount.useActionState = mountActionState;
-HooksDispatcherOnMount.useOptimistic = function (passthrough) {
-  var hook = mountWorkInProgressHook();
-  hook.memoizedState = hook.baseState = passthrough;
-  var queue = {
-    pending: null,
-    lanes: 0,
-    dispatch: null,
-    lastRenderedReducer: null,
-    lastRenderedState: null
-  };
-  hook.queue = queue;
-  hook = dispatchOptimisticSetState.bind(
-    null,
-    currentlyRenderingFiber$1,
-    !0,
-    queue
-  );
-  queue.dispatch = hook;
-  return [passthrough, hook];
-};
 var HooksDispatcherOnUpdate = {
   readContext: readContext,
   use: use,
@@ -4645,19 +4681,19 @@ var HooksDispatcherOnUpdate = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: updateActionState,
+  useActionState: updateActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnUpdate.useCacheRefresh = updateRefresh;
-HooksDispatcherOnUpdate.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnUpdate.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnUpdate.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnUpdate.useFormState = updateActionState;
-HooksDispatcherOnUpdate.useActionState = updateActionState;
-HooksDispatcherOnUpdate.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-};
 var HooksDispatcherOnRerender = {
   readContext: readContext,
   use: use,
@@ -4696,22 +4732,22 @@ var HooksDispatcherOnRerender = {
     ];
   },
   useSyncExternalStore: updateSyncExternalStore,
-  useId: updateId
+  useId: updateId,
+  useHostTransitionStatus: useHostTransitionStatus,
+  useFormState: rerenderActionState,
+  useActionState: rerenderActionState,
+  useOptimistic: function (passthrough, reducer) {
+    var hook = updateWorkInProgressHook();
+    if (null !== currentHook)
+      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+    hook.baseState = passthrough;
+    return [passthrough, hook.queue.dispatch];
+  },
+  useMemoCache: useMemoCache,
+  useCacheRefresh: updateRefresh
 };
-HooksDispatcherOnRerender.useCacheRefresh = updateRefresh;
-HooksDispatcherOnRerender.useMemoCache = useMemoCache;
 enableUseResourceEffectHook &&
   (HooksDispatcherOnRerender.useResourceEffect = updateResourceEffect);
-HooksDispatcherOnRerender.useHostTransitionStatus = useHostTransitionStatus;
-HooksDispatcherOnRerender.useFormState = rerenderActionState;
-HooksDispatcherOnRerender.useActionState = rerenderActionState;
-HooksDispatcherOnRerender.useOptimistic = function (passthrough, reducer) {
-  var hook = updateWorkInProgressHook();
-  if (null !== currentHook)
-    return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
-  hook.baseState = passthrough;
-  return [passthrough, hook.queue.dispatch];
-};
 var thenableState = null,
   thenableIndexCounter = 0;
 function unwrapThenable(thenable) {
@@ -6636,7 +6672,7 @@ function updateSuspenseComponent(current, workInProgress, renderLanes) {
       )
         return (
           isSuspenseInstanceFallback(nextInstance)
-            ? (workInProgress.lanes = 16)
+            ? (workInProgress.lanes = 32)
             : (workInProgress.lanes = 536870912),
           null
         );
@@ -6767,59 +6803,25 @@ function updateSuspenseComponent(current, workInProgress, renderLanes) {
       didReceiveUpdate || JSCompiler_temp)
     ) {
       JSCompiler_temp = workInProgressRoot;
-      if (null !== JSCompiler_temp) {
-        nextProps = renderLanes & -renderLanes;
-        if (0 !== (nextProps & 42)) nextProps = 1;
-        else
-          switch (nextProps) {
-            case 2:
-              nextProps = 1;
-              break;
-            case 8:
-              nextProps = 4;
-              break;
-            case 32:
-              nextProps = 16;
-              break;
-            case 128:
-            case 256:
-            case 512:
-            case 1024:
-            case 2048:
-            case 4096:
-            case 8192:
-            case 16384:
-            case 32768:
-            case 65536:
-            case 131072:
-            case 262144:
-            case 524288:
-            case 1048576:
-            case 2097152:
-            case 4194304:
-            case 8388608:
-            case 16777216:
-            case 33554432:
-              nextProps = 64;
-              break;
-            case 268435456:
-              nextProps = 134217728;
-              break;
-            default:
-              nextProps = 0;
-          }
-        nextProps =
+      if (
+        null !== JSCompiler_temp &&
+        ((nextProps = renderLanes & -renderLanes),
+        (nextProps =
+          0 !== (nextProps & 42)
+            ? 1
+            : getBumpedLaneForHydrationByLane(nextProps)),
+        (nextProps =
           0 !== (nextProps & (JSCompiler_temp.suspendedLanes | renderLanes))
             ? 0
-            : nextProps;
-        if (0 !== nextProps && nextProps !== JSCompiler_temp$jscomp$0.retryLane)
-          throw (
-            ((JSCompiler_temp$jscomp$0.retryLane = nextProps),
-            enqueueConcurrentRenderForLane(current, nextProps),
-            scheduleUpdateOnFiber(JSCompiler_temp, current, nextProps),
-            SelectiveHydrationException)
-          );
-      }
+            : nextProps),
+        0 !== nextProps && nextProps !== JSCompiler_temp$jscomp$0.retryLane)
+      )
+        throw (
+          ((JSCompiler_temp$jscomp$0.retryLane = nextProps),
+          enqueueConcurrentRenderForLane(current, nextProps),
+          scheduleUpdateOnFiber(JSCompiler_temp, current, nextProps),
+          SelectiveHydrationException)
+        );
       "$?" === nextInstance.data || renderDidSuspendDelayIfPossible();
       workInProgress = retrySuspenseComponentWithoutHydrating(
         current,
@@ -13002,20 +13004,20 @@ function extractEvents$1(
   }
 }
 for (
-  var i$jscomp$inline_1576 = 0;
-  i$jscomp$inline_1576 < simpleEventPluginEvents.length;
-  i$jscomp$inline_1576++
+  var i$jscomp$inline_1567 = 0;
+  i$jscomp$inline_1567 < simpleEventPluginEvents.length;
+  i$jscomp$inline_1567++
 ) {
-  var eventName$jscomp$inline_1577 =
-      simpleEventPluginEvents[i$jscomp$inline_1576],
-    domEventName$jscomp$inline_1578 =
-      eventName$jscomp$inline_1577.toLowerCase(),
-    capitalizedEvent$jscomp$inline_1579 =
-      eventName$jscomp$inline_1577[0].toUpperCase() +
-      eventName$jscomp$inline_1577.slice(1);
+  var eventName$jscomp$inline_1568 =
+      simpleEventPluginEvents[i$jscomp$inline_1567],
+    domEventName$jscomp$inline_1569 =
+      eventName$jscomp$inline_1568.toLowerCase(),
+    capitalizedEvent$jscomp$inline_1570 =
+      eventName$jscomp$inline_1568[0].toUpperCase() +
+      eventName$jscomp$inline_1568.slice(1);
   registerSimpleEvent(
-    domEventName$jscomp$inline_1578,
-    "on" + capitalizedEvent$jscomp$inline_1579
+    domEventName$jscomp$inline_1569,
+    "on" + capitalizedEvent$jscomp$inline_1570
   );
 }
 registerSimpleEvent(ANIMATION_END, "onAnimationEnd");
@@ -16312,8 +16314,9 @@ function attemptExplicitHydrationTarget(queuedTarget) {
           queuedTarget.blockedOn = targetInst;
           runWithPriority(queuedTarget.priority, function () {
             if (13 === nearestMounted.tag) {
-              var lane = requestUpdateLane(nearestMounted),
-                root = enqueueConcurrentRenderForLane(nearestMounted, lane);
+              var lane = requestUpdateLane(nearestMounted);
+              lane = getBumpedLaneForHydrationByLane(lane);
+              var root = enqueueConcurrentRenderForLane(nearestMounted, lane);
               null !== root &&
                 scheduleUpdateOnFiber(root, nearestMounted, lane);
               markRetryLaneIfNotHydrated(nearestMounted, lane);
@@ -16515,16 +16518,16 @@ ReactDOMHydrationRoot.prototype.unstable_scheduleHydration = function (target) {
     0 === i && attemptExplicitHydrationTarget(target);
   }
 };
-var isomorphicReactPackageVersion$jscomp$inline_1821 = React.version;
+var isomorphicReactPackageVersion$jscomp$inline_1812 = React.version;
 if (
-  "19.0.0-native-fb-7283a213-20241206" !==
-  isomorphicReactPackageVersion$jscomp$inline_1821
+  "19.1.0-native-fb-d4287258-20241217" !==
+  isomorphicReactPackageVersion$jscomp$inline_1812
 )
   throw Error(
     formatProdErrorMessage(
       527,
-      isomorphicReactPackageVersion$jscomp$inline_1821,
-      "19.0.0-native-fb-7283a213-20241206"
+      isomorphicReactPackageVersion$jscomp$inline_1812,
+      "19.1.0-native-fb-d4287258-20241217"
     )
   );
 ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
@@ -16544,13 +16547,12 @@ ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
     null === componentOrElement ? null : componentOrElement.stateNode;
   return componentOrElement;
 };
-var internals$jscomp$inline_1828 = {
+var internals$jscomp$inline_1819 = {
   bundleType: 0,
-  version: "19.0.0-native-fb-7283a213-20241206",
+  version: "19.1.0-native-fb-d4287258-20241217",
   rendererPackageName: "react-dom",
   currentDispatcherRef: ReactSharedInternals,
-  findFiberByHostInstance: getClosestInstanceFromNode,
-  reconcilerVersion: "19.0.0-native-fb-7283a213-20241206",
+  reconcilerVersion: "19.1.0-native-fb-d4287258-20241217",
   getLaneLabelMap: function () {
     for (
       var map = new Map(), lane = 1, index$292 = 0;
@@ -16568,16 +16570,16 @@ var internals$jscomp$inline_1828 = {
   }
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
-  var hook$jscomp$inline_2238 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
+  var hook$jscomp$inline_2229 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (
-    !hook$jscomp$inline_2238.isDisabled &&
-    hook$jscomp$inline_2238.supportsFiber
+    !hook$jscomp$inline_2229.isDisabled &&
+    hook$jscomp$inline_2229.supportsFiber
   )
     try {
-      (rendererID = hook$jscomp$inline_2238.inject(
-        internals$jscomp$inline_1828
+      (rendererID = hook$jscomp$inline_2229.inject(
+        internals$jscomp$inline_1819
       )),
-        (injectedHook = hook$jscomp$inline_2238);
+        (injectedHook = hook$jscomp$inline_2229);
     } catch (err) {}
 }
 exports.createRoot = function (container, options) {
@@ -16659,14 +16661,16 @@ exports.hydrateRoot = function (container, initialChildren, options) {
   initialChildren.context = getContextForSubtree(null);
   options = initialChildren.current;
   isStrictMode = requestUpdateLane(options);
+  isStrictMode = getBumpedLaneForHydrationByLane(isStrictMode);
   identifierPrefix = createUpdate(isStrictMode);
   identifierPrefix.callback = null;
   enqueueUpdate(options, identifierPrefix, isStrictMode);
-  initialChildren.current.lanes = isStrictMode;
-  markRootUpdated$1(initialChildren, isStrictMode);
+  options = isStrictMode;
+  initialChildren.current.lanes = options;
+  markRootUpdated$1(initialChildren, options);
   ensureRootIsScheduled(initialChildren);
   container[internalContainerInstanceKey] = initialChildren.current;
   listenToAllSupportedEvents(container);
   return new ReactDOMHydrationRoot(initialChildren);
 };
-exports.version = "19.0.0-native-fb-7283a213-20241206";
+exports.version = "19.1.0-native-fb-d4287258-20241217";
