@@ -368,7 +368,7 @@ var reportGlobalError =
         console.error(error);
       };
 function noop() {}
-var ReactCompilerRuntime = { c: useMemoCache },
+var ReactCompilerRuntime = { __proto__: null, c: useMemoCache },
   experimental_useResourceEffect = enableUseResourceEffectHook
     ? useResourceEffect
     : void 0;
@@ -634,7 +634,7 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-www-modern-a160102f-20250107";
+exports.version = "19.1.0-www-modern-886c5ad9-20250115";
 "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
   "function" ===
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&

@@ -3349,6 +3349,7 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_VIEW_TRANSITION_TYPE:
         case REACT_TRACING_MARKER_TYPE:
           if (enableTransitionTracing) return "TracingMarker";
       }
@@ -3818,6 +3819,9 @@ __DEV__ &&
       thenableIndexCounter += 1;
       null === thenableState && (thenableState = []);
       return trackUsedThenable(thenableState, thenable, index);
+    }
+    function unsupportedRefresh() {
+      throw Error("Cache cannot be refreshed during server rendering.");
     }
     function noop$1() {}
     function disabledLog() {}
@@ -5110,6 +5114,7 @@ __DEV__ &&
             renderNodeDestructive(request, task, props.children, -1);
             task.keyPath = type;
             return;
+          case REACT_VIEW_TRANSITION_TYPE:
           case REACT_SCOPE_TYPE:
             type = task.keyPath;
             task.keyPath = keyPath;
@@ -6944,6 +6949,8 @@ __DEV__ &&
       REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
       REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
       REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
+      REACT_MEMO_CACHE_SENTINEL = Symbol.for("react.memo_cache_sentinel"),
+      REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
       MAYBE_ITERATOR_SYMBOL = Symbol.iterator,
       isArrayImpl = Array.isArray,
       jsxPropsParents = new WeakMap(),
@@ -8057,9 +8064,6 @@ __DEV__ &&
     var didWarnAboutInvalidateContextType = new Set();
     var didWarnOnInvalidCallback = new Set();
     var classComponentUpdater = {
-        isMounted: function () {
-          return !1;
-        },
         enqueueSetState: function (inst, payload, callback) {
           var internals = inst._reactInternals;
           null === internals.queue
@@ -8199,6 +8203,14 @@ __DEV__ &&
         useHostTransitionStatus: function () {
           resolveCurrentlyRenderingComponent();
           return NotPending;
+        },
+        useMemoCache: function (size) {
+          for (var data = Array(size), i = 0; i < size; i++)
+            data[i] = REACT_MEMO_CACHE_SENTINEL;
+          return data;
+        },
+        useCacheRefresh: function () {
+          return unsupportedRefresh;
         },
         useEffectEvent: function () {
           return throwOnUseEffectEventCall;

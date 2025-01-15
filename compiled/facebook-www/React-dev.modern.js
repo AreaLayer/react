@@ -137,6 +137,7 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_VIEW_TRANSITION_TYPE:
         case REACT_TRACING_MARKER_TYPE:
           if (enableTransitionTracing) return "TracingMarker";
       }
@@ -1136,6 +1137,7 @@ __DEV__ &&
       REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
       REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
       REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
+      REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
       MAYBE_ITERATOR_SYMBOL = Symbol.iterator,
       warningWWW = require("warning"),
       didWarnStateUpdateForUnmountedComponent = {},
@@ -1278,7 +1280,10 @@ __DEV__ &&
               });
             }
           : enqueueTask,
-      ReactCompilerRuntime = { c: useMemoCache },
+      ReactCompilerRuntime = Object.freeze({
+        __proto__: null,
+        c: useMemoCache
+      }),
       Children = {
         map: mapChildren,
         forEach: function (children, forEachFunc, forEachContext) {
@@ -1942,7 +1947,7 @@ __DEV__ &&
     exports.useTransition = function () {
       return resolveDispatcher().useTransition();
     };
-    exports.version = "19.1.0-www-modern-a160102f-20250107";
+    exports.version = "19.1.0-www-modern-886c5ad9-20250115";
     "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&
