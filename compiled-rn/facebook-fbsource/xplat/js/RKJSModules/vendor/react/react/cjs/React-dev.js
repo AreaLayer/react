@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<c3aea99f2490b54e1b998709ed65e818>>
+ * @generated SignedSource<<6266faea57ac1c6c8c87cd24a6413356>>
  */
 
 "use strict";
@@ -1244,7 +1244,10 @@ __DEV__ &&
               });
             }
           : enqueueTask,
-      ReactCompilerRuntime = { c: useMemoCache },
+      ReactCompilerRuntime = Object.freeze({
+        __proto__: null,
+        c: useMemoCache
+      }),
       Children = {
         map: mapChildren,
         forEach: function (children, forEachFunc, forEachContext) {
@@ -1824,7 +1827,7 @@ __DEV__ &&
     exports.useTransition = function () {
       return resolveDispatcher().useTransition();
     };
-    exports.version = "19.1.0-native-fb-a160102f-20250107";
+    exports.version = "19.1.0-native-fb-886c5ad9-20250115";
     "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&

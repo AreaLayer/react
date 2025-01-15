@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<1deca92dc70288f2dba1966259c14cf7>>
+ * @generated SignedSource<<7f1d4c0795791f1044f524c0930566ca>>
  */
 
 "use strict";
@@ -349,7 +349,7 @@ var reportGlobalError =
         console.error(error);
       };
 function noop() {}
-var ReactCompilerRuntime = { c: useMemoCache },
+var ReactCompilerRuntime = { __proto__: null, c: useMemoCache },
   experimental_useResourceEffect = enableUseResourceEffectHook
     ? useResourceEffect
     : void 0;
@@ -592,4 +592,4 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-native-fb-a160102f-20250107";
+exports.version = "19.1.0-native-fb-886c5ad9-20250115";
