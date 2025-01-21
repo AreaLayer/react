@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<43ebf03f484bcb336726b95ac8ef8ddc>>
+ * @generated SignedSource<<af03fb0a07c612b2983e41380feab06f>>
  */
 
 /*
@@ -14253,7 +14253,7 @@ function handleErrorInNextTick(error) {
 }
 var supportsMoveBefore =
   "undefined" !== typeof window &&
-  "function" === typeof window.Node.prototype.moveBefore;
+  "function" === typeof window.Element.prototype.moveBefore;
 function clearSuspenseBoundary(parentInstance, suspenseInstance) {
   var node = suspenseInstance,
     depth = 0;
@@ -15979,14 +15979,14 @@ ReactDOMHydrationRoot.prototype.unstable_scheduleHydration = function (target) {
 };
 var isomorphicReactPackageVersion$jscomp$inline_1786 = React.version;
 if (
-  "19.1.0-native-fb-886c5ad9-20250115" !==
+  "19.1.0-native-fb-18eaf51b-20250118" !==
   isomorphicReactPackageVersion$jscomp$inline_1786
 )
   throw Error(
     formatProdErrorMessage(
       527,
       isomorphicReactPackageVersion$jscomp$inline_1786,
-      "19.1.0-native-fb-886c5ad9-20250115"
+      "19.1.0-native-fb-18eaf51b-20250118"
     )
   );
 ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
@@ -16008,10 +16008,10 @@ ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
 };
 var internals$jscomp$inline_2244 = {
   bundleType: 0,
-  version: "19.1.0-native-fb-886c5ad9-20250115",
+  version: "19.1.0-native-fb-18eaf51b-20250118",
   rendererPackageName: "react-dom",
   currentDispatcherRef: ReactSharedInternals,
-  reconcilerVersion: "19.1.0-native-fb-886c5ad9-20250115"
+  reconcilerVersion: "19.1.0-native-fb-18eaf51b-20250118"
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
   var hook$jscomp$inline_2245 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
@@ -16271,4 +16271,4 @@ exports.useFormState = function (action, initialState, permalink) {
 exports.useFormStatus = function () {
   return ReactSharedInternals.H.useHostTransitionStatus();
 };
-exports.version = "19.1.0-native-fb-886c5ad9-20250115";
+exports.version = "19.1.0-native-fb-18eaf51b-20250118";
