@@ -94,7 +94,7 @@ pureComponentPrototype.constructor = PureComponent;
 assign(pureComponentPrototype, Component.prototype);
 pureComponentPrototype.isPureReactComponent = !0;
 var isArrayImpl = Array.isArray,
-  ReactSharedInternals = { H: null, A: null, T: null, S: null },
+  ReactSharedInternals = { H: null, A: null, T: null, S: null, V: null },
   hasOwnProperty = Object.prototype.hasOwnProperty;
 function ReactElement(type, key, self, source, owner, props) {
   self = props.ref;
@@ -634,7 +634,7 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-www-classic-18eaf51b-20250118";
+exports.version = "19.1.0-www-classic-152bfe37-20250131";
 "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
   "function" ===
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&

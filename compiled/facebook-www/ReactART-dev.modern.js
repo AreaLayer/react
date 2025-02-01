@@ -3828,7 +3828,7 @@ __DEV__ &&
           ),
           node.isTransition ||
             error$jscomp$0(
-              "An async function was passed to useActionState, but it was dispatched outside of an action context. This is likely not what you intended. Either pass the dispatch function to an `action` prop, or dispatch manually inside `startTransition`"
+              "An async function with useActionState was called outside of a transition. This is likely not what you intended (for example, isPending will not update correctly). Either call the returned function inside startTransition, or pass it to an `action` or `formAction` prop."
             ))
         : onActionSuccess(actionQueue, node, returnValue);
     }
@@ -10198,8 +10198,8 @@ __DEV__ &&
           }
           finishedRoot.effectDuration += popNestedEffectDurations(current);
           break;
-        case 26:
         case 27:
+        case 26:
         case 5:
           recursivelyTraverseLayoutEffects(finishedRoot, finishedWork);
           null === current && flags & 4 && commitHostMount(finishedWork);
@@ -10735,9 +10735,6 @@ __DEV__ &&
                 hostParentIsContainer = !1;
                 break a;
               case 3:
-                hostParent = parent.stateNode.containerInfo;
-                hostParentIsContainer = !0;
-                break a;
               case 4:
                 hostParent = parent.stateNode.containerInfo;
                 hostParentIsContainer = !0;
@@ -10958,10 +10955,10 @@ __DEV__ &&
               ? root._visibility & -2
               : root._visibility | 1),
             suspenseCallback &&
-              ((root = offscreenSubtreeIsHidden || offscreenSubtreeWasHidden),
-              null === current ||
+              (null === current ||
                 retryQueue ||
-                root ||
+                offscreenSubtreeIsHidden ||
+                offscreenSubtreeWasHidden ||
                 recursivelyTraverseDisappearLayoutEffects(finishedWork)),
             null === finishedWork.memoizedProps ||
               "manual" !== finishedWork.memoizedProps.mode)
@@ -11110,8 +11107,8 @@ __DEV__ &&
             );
           recursivelyTraverseDisappearLayoutEffects(finishedWork);
           break;
-        case 26:
         case 27:
+        case 26:
         case 5:
           safelyDetachRef(finishedWork, finishedWork.return);
           recursivelyTraverseDisappearLayoutEffects(finishedWork);
@@ -11185,8 +11182,8 @@ __DEV__ &&
             commitClassCallbacks(finishedWork);
           safelyAttachRef(finishedWork, finishedWork.return);
           break;
-        case 26:
         case 27:
+        case 26:
         case 5:
           recursivelyTraverseReappearLayoutEffects(
             finishedRoot,
@@ -12287,7 +12284,6 @@ __DEV__ &&
                 lanes,
                 workInProgressRootRecoverableErrors,
                 workInProgressTransitions,
-                workInProgressAppearingViewTransitions,
                 workInProgressRootDidIncludeRecursiveRenderUpdate,
                 workInProgressDeferredLane,
                 workInProgressRootInterleavedUpdatedLanes,
@@ -12317,7 +12313,6 @@ __DEV__ &&
                     forceSync,
                     workInProgressRootRecoverableErrors,
                     workInProgressTransitions,
-                    workInProgressAppearingViewTransitions,
                     workInProgressRootDidIncludeRecursiveRenderUpdate,
                     lanes,
                     workInProgressDeferredLane,
@@ -12338,7 +12333,6 @@ __DEV__ &&
                 forceSync,
                 workInProgressRootRecoverableErrors,
                 workInProgressTransitions,
-                workInProgressAppearingViewTransitions,
                 workInProgressRootDidIncludeRecursiveRenderUpdate,
                 lanes,
                 workInProgressDeferredLane,
@@ -12362,7 +12356,6 @@ __DEV__ &&
       finishedWork,
       recoverableErrors,
       transitions,
-      appearingViewTransitions,
       didIncludeRenderPhaseUpdate,
       lanes,
       spawnedLane,
@@ -12371,9 +12364,7 @@ __DEV__ &&
     ) {
       root.timeoutHandle = -1;
       var subtreeFlags = finishedWork.subtreeFlags;
-      (subtreeFlags =
-        subtreeFlags & 8192 || 16785408 === (subtreeFlags & 16785408)) &&
-        subtreeFlags &&
+      (subtreeFlags & 8192 || 16785408 === (subtreeFlags & 16785408)) &&
         accumulateSuspenseyCommitOnFiber(finishedWork);
       commitRoot(
         root,
@@ -12381,7 +12372,6 @@ __DEV__ &&
         lanes,
         recoverableErrors,
         transitions,
-        appearingViewTransitions,
         didIncludeRenderPhaseUpdate,
         spawnedLane,
         updatedLanes,
@@ -12506,7 +12496,6 @@ __DEV__ &&
       workInProgressRootRecoverableErrors = workInProgressRootConcurrentErrors =
         null;
       workInProgressRootDidIncludeRecursiveRenderUpdate = !1;
-      workInProgressAppearingViewTransitions = null;
       0 !== (lanes & 8) && (lanes |= lanes & 32);
       var allEntangledLanes = root.entangledLanes;
       if (0 !== allEntangledLanes)
@@ -13120,7 +13109,6 @@ __DEV__ &&
       lanes,
       recoverableErrors,
       transitions,
-      appearingViewTransitions,
       didIncludeRenderPhaseUpdate,
       spawnedLane,
       updatedLanes,
@@ -13189,12 +13177,7 @@ __DEV__ &&
           didIncludeRenderPhaseUpdate = executionContext;
           executionContext |= CommitContext;
           try {
-            commitBeforeMutationEffects(
-              root,
-              finishedWork,
-              lanes,
-              appearingViewTransitions
-            );
+            commitBeforeMutationEffects(root, finishedWork, lanes);
           } finally {
             (executionContext = didIncludeRenderPhaseUpdate),
               (currentUpdatePriority = transitions),
@@ -16463,7 +16446,6 @@ __DEV__ &&
       workInProgressSuspendedRetryLanes = 0,
       workInProgressRootConcurrentErrors = null,
       workInProgressRootRecoverableErrors = null,
-      workInProgressAppearingViewTransitions = null,
       workInProgressRootDidIncludeRecursiveRenderUpdate = !1,
       didIncludeCommitPhaseUpdate = !1,
       globalMostRecentFallbackTime = 0,
@@ -16722,10 +16704,10 @@ __DEV__ &&
     (function () {
       var internals = {
         bundleType: 1,
-        version: "19.1.0-www-modern-18eaf51b-20250118",
+        version: "19.1.0-www-modern-152bfe37-20250131",
         rendererPackageName: "react-art",
         currentDispatcherRef: ReactSharedInternals,
-        reconcilerVersion: "19.1.0-www-modern-18eaf51b-20250118"
+        reconcilerVersion: "19.1.0-www-modern-152bfe37-20250131"
       };
       internals.overrideHookState = overrideHookState;
       internals.overrideHookStateDeletePath = overrideHookStateDeletePath;
@@ -16759,7 +16741,7 @@ __DEV__ &&
     exports.Shape = Shape;
     exports.Surface = Surface;
     exports.Text = Text;
-    exports.version = "19.1.0-www-modern-18eaf51b-20250118";
+    exports.version = "19.1.0-www-modern-152bfe37-20250131";
     "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&
