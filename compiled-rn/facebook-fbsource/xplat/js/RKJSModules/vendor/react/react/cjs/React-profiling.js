@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<986c4be59b3e635074ab12bc65a03d47>>
+ * @generated SignedSource<<95d55d1e7c6c34025982ba44e743645a>>
  */
 
 "use strict";
@@ -33,6 +33,7 @@ var enableUseResourceEffectHook =
   REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
   REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
   REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
+  REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
   MAYBE_ITERATOR_SYMBOL = Symbol.iterator;
 function getIteratorFn(maybeIterable) {
   if (null === maybeIterable || "object" !== typeof maybeIterable) return null;
@@ -528,6 +529,14 @@ exports.unstable_LegacyHidden = REACT_LEGACY_HIDDEN_TYPE;
 exports.unstable_Scope = REACT_SCOPE_TYPE;
 exports.unstable_SuspenseList = REACT_SUSPENSE_LIST_TYPE;
 exports.unstable_TracingMarker = REACT_TRACING_MARKER_TYPE;
+exports.unstable_ViewTransition = REACT_VIEW_TRANSITION_TYPE;
+exports.unstable_addTransitionType = function (type) {
+  var pendingTransitionTypes = ReactSharedInternals.V;
+  null === pendingTransitionTypes
+    ? (ReactSharedInternals.V = [type])
+    : -1 === pendingTransitionTypes.indexOf(type) &&
+      pendingTransitionTypes.push(type);
+};
 exports.unstable_getCacheForType = function (resourceType) {
   var dispatcher = ReactSharedInternals.A;
   return dispatcher ? dispatcher.getCacheForType(resourceType) : resourceType();
@@ -596,7 +605,7 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-native-fb-152bfe37-20250131";
+exports.version = "19.1.0-native-fb-ff628334-20250205";
 "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
   "function" ===
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&
