@@ -7,10 +7,12 @@
  * @noformat
  * @nolint
  * @flow strict
- * @generated SignedSource<<694ba49f9b85f1cc713053fe7628684a>>
+ * @generated SignedSource<<d020970c0862ae39beaffe31c0a54f08>>
  */
 
 import type {ElementRef, ElementType, MixedElement} from 'react';
+// $FlowFixMe[nonstrict-import] TODO(@rubennorte)
+import {type PublicRootInstance} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
 
 export type MeasureOnSuccessCallback = (
   x: number,
@@ -163,18 +165,19 @@ export type InspectorData = $ReadOnly<{
   componentStack: string,
 }>;
 
-export type TouchedViewDataAtPoint = $ReadOnly<{
-  pointerY: number,
-  touchedViewTag?: number,
-  frame: $ReadOnly<{
-    top: number,
-    left: number,
-    width: number,
-    height: number,
-  }>,
-  closestPublicInstance?: PublicInstance,
-  ...InspectorData,
-}>;
+export type TouchedViewDataAtPoint = $ReadOnly<
+  {
+    pointerY: number,
+    touchedViewTag?: number,
+    frame: $ReadOnly<{
+      top: number,
+      left: number,
+      width: number,
+      height: number,
+    }>,
+    closestPublicInstance?: PublicInstance,
+  } & InspectorData,
+>;
 
 export type RenderRootOptions = {
   onUncaughtError?: (
@@ -232,7 +235,6 @@ export opaque type Node = mixed;
 export opaque type InternalInstanceHandle = mixed;
 type PublicInstance = mixed;
 type PublicTextInstance = mixed;
-export opaque type PublicRootInstance = mixed;
 
 export type ReactFabricType = {
   findHostInstance_DEPRECATED<TElementType: ElementType>(
@@ -262,6 +264,7 @@ export type ReactFabricType = {
   getPublicInstanceFromInternalInstanceHandle(
     internalInstanceHandle: InternalInstanceHandle,
   ): PublicInstance | PublicTextInstance | null,
+  getPublicInstanceFromRootTag(rootTag: number): PublicRootInstance | null,
   ...
 };
 
