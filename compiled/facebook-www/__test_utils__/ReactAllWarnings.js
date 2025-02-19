@@ -155,7 +155,7 @@ export default [
   "Expected currently replaying event to be null. This error is likely caused by a bug in React. Please file an issue.",
   "Expected currently replaying event to not be null. This error is likely caused by a bug in React. Please file an issue.",
   "Expected host context to exist. This error is likely caused by a bug in React. Please file an issue.",
-  "Expected only SimpleEffects when enableUseResourceEffectHook is disabled, got %s",
+  "Expected only SimpleEffects when enableUseEffectCRUDOverload is disabled, got %s",
   "Expected the last optional `callback` argument to be a function. Instead received: %s.",
   "Expected to be hydrating. This is a bug in React. Please file an issue.",
   "Expected to find a StrictMode component in a strict mode tree. This error is likely caused by a bug in React. Please file an issue.",
@@ -210,6 +210,9 @@ export default [
   "Popping the context provider did not return back to the original snapshot. This is a bug in React.",
   "Profiler must specify an \"id\" of type `string` as a prop. Received the type `%s` instead.",
   "React Context Providers cannot be passed to Server Functions from the Client.%s",
+  "React Hook useEffect requires an effect callback. Did you forget to pass a callback to the hook?",
+  "React Hook useInsertionEffect requires an effect callback. Did you forget to pass a callback to the hook?",
+  "React Hook useLayoutEffect requires an effect callback. Did you forget to pass a callback to the hook?",
   "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://react.dev/link/react-polyfills",
   "React depends on Map and Set built-in types. Make sure that you load a polyfill in older browsers. https://reactjs.org/link/react-polyfills",
   "React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.",
@@ -390,7 +393,7 @@ export default [
   "unmountComponentAtNode was removed in React 19. Use root.unmount() instead.",
   "unmountComponentAtNode(): The node you're attempting to unmount was rendered by React and is not a top-level container. %s",
   "unmountComponentAtNode(): The node you're attempting to unmount was rendered by another copy of React.",
+  "useEffect must provide a callback which returns a resource. If a managed resource is not needed here, do not provide an updater or destroy callback. Received %s",
   "useInsertionEffect must not schedule updates.",
-  "useOptimistic is now in canary. Remove the experimental_ prefix. The prefixed alias will be removed in an upcoming release.",
-  "useResourceEffect must provide a callback which returns a resource. If a managed resource is not needed here, use useEffect. Received %s"
+  "useOptimistic is now in canary. Remove the experimental_ prefix. The prefixed alias will be removed in an upcoming release."
 ];
