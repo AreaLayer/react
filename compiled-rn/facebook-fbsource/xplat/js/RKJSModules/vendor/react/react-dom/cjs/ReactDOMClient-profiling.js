@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<92ed7c47e7f933f31b3fd06756be5931>>
+ * @generated SignedSource<<206555493b187b8901d0a7cda0e4919e>>
  */
 
 /*
@@ -40,7 +40,8 @@ var alwaysThrottleRetries = dynamicFlagsUntyped.alwaysThrottleRetries,
   enablePersistedModeClonedFlag =
     dynamicFlagsUntyped.enablePersistedModeClonedFlag,
   enableUseEffectCRUDOverload = dynamicFlagsUntyped.enableUseEffectCRUDOverload,
-  enableSiblingPrerendering = dynamicFlagsUntyped.enableSiblingPrerendering;
+  enableSiblingPrerendering = dynamicFlagsUntyped.enableSiblingPrerendering,
+  renameElementSymbol = dynamicFlagsUntyped.renameElementSymbol;
 function isValidContainer(node) {
   return !(
     !node ||
@@ -155,6 +156,9 @@ function findCurrentHostFiberImpl(node) {
 }
 var assign = Object.assign,
   REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+  REACT_ELEMENT_TYPE = renameElementSymbol
+    ? Symbol.for("react.transitional.element")
+    : REACT_LEGACY_ELEMENT_TYPE,
   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
@@ -790,7 +794,8 @@ var randomKey = Math.random().toString(36).slice(2),
   internalEventHandlerListenersKey = "__reactListeners$" + randomKey,
   internalEventHandlesSetKey = "__reactHandles$" + randomKey,
   internalRootNodeResourcesKey = "__reactResources$" + randomKey,
-  internalHoistableMarker = "__reactMarker$" + randomKey;
+  internalHoistableMarker = "__reactMarker$" + randomKey,
+  internalScrollTimer = "__reactScroll$" + randomKey;
 function detachDeletedInstance(node) {
   delete node[internalInstanceKey];
   delete node[internalPropsKey];
@@ -2138,6 +2143,16 @@ function isTextInputElement(elem) {
       ? !0
       : !1;
 }
+function isEventSupported(eventNameSuffix) {
+  if (!canUseDOM) return !1;
+  eventNameSuffix = "on" + eventNameSuffix;
+  var isSupported = eventNameSuffix in document;
+  isSupported ||
+    ((isSupported = document.createElement("div")),
+    isSupported.setAttribute(eventNameSuffix, "return;"),
+    (isSupported = "function" === typeof isSupported[eventNameSuffix]));
+  return isSupported;
+}
 function createAndAccumulateChangeEvent(
   dispatchQueue,
   inst,
@@ -2162,7 +2177,7 @@ function createAndAccumulateChangeEvent(
 }
 var activeElement$1 = null,
   activeElementInst$1 = null;
-function runEventInBatch(dispatchQueue) {
+function runEventInBatch$1(dispatchQueue) {
   processDispatchQueue(dispatchQueue, 0);
 }
 function getInstIfValueChanged(targetInst) {
@@ -2173,22 +2188,10 @@ function getTargetInstForChangeEvent(domEventName, targetInst) {
   if ("change" === domEventName) return targetInst;
 }
 var isInputEventSupported = !1;
-if (canUseDOM) {
-  var JSCompiler_inline_result$jscomp$310;
-  if (canUseDOM) {
-    var isSupported$jscomp$inline_442 = "oninput" in document;
-    if (!isSupported$jscomp$inline_442) {
-      var element$jscomp$inline_443 = document.createElement("div");
-      element$jscomp$inline_443.setAttribute("oninput", "return;");
-      isSupported$jscomp$inline_442 =
-        "function" === typeof element$jscomp$inline_443.oninput;
-    }
-    JSCompiler_inline_result$jscomp$310 = isSupported$jscomp$inline_442;
-  } else JSCompiler_inline_result$jscomp$310 = !1;
-  isInputEventSupported =
-    JSCompiler_inline_result$jscomp$310 &&
-    (!document.documentMode || 9 < document.documentMode);
-}
+canUseDOM &&
+  (isInputEventSupported =
+    isEventSupported("input") &&
+    (!document.documentMode || 9 < document.documentMode));
 function stopWatchingForValueChange() {
   activeElement$1 &&
     (activeElement$1.detachEvent("onpropertychange", handlePropertyChange),
@@ -2206,7 +2209,7 @@ function handlePropertyChange(nativeEvent) {
       nativeEvent,
       getEventTarget(nativeEvent)
     );
-    batchedUpdates$1(runEventInBatch, dispatchQueue);
+    batchedUpdates$1(runEventInBatch$1, dispatchQueue);
   }
 }
 function handleEventsForInputEventPolyfill(domEventName, target, targetInst) {
@@ -2426,7 +2429,7 @@ var ANIMATION_END = getVendorPrefixedEventName("animationend"),
   TRANSITION_END = getVendorPrefixedEventName("transitionend"),
   topLevelEventsToReactNames = new Map(),
   simpleEventPluginEvents =
-    "abort auxClick beforeToggle cancel canPlay canPlayThrough click close contextMenu copy cut drag dragEnd dragEnter dragExit dragLeave dragOver dragStart drop durationChange emptied encrypted ended error gotPointerCapture input invalid keyDown keyPress keyUp load loadedData loadedMetadata loadStart lostPointerCapture mouseDown mouseMove mouseOut mouseOver mouseUp paste pause play playing pointerCancel pointerDown pointerMove pointerOut pointerOver pointerUp progress rateChange reset resize seeked seeking stalled submit suspend timeUpdate touchCancel touchEnd touchStart volumeChange scroll scrollEnd toggle touchMove waiting wheel".split(
+    "abort auxClick beforeToggle cancel canPlay canPlayThrough click close contextMenu copy cut drag dragEnd dragEnter dragExit dragLeave dragOver dragStart drop durationChange emptied encrypted ended error gotPointerCapture input invalid keyDown keyPress keyUp load loadedData loadedMetadata loadStart lostPointerCapture mouseDown mouseMove mouseOut mouseOver mouseUp paste pause play playing pointerCancel pointerDown pointerMove pointerOut pointerOver pointerUp progress rateChange reset resize seeked seeking stalled submit suspend timeUpdate touchCancel touchEnd touchStart volumeChange scroll toggle touchMove waiting wheel".split(
       " "
     );
 function registerSimpleEvent(domEventName, reactName) {
@@ -4907,19 +4910,19 @@ var ContextOnlyDispatcher = {
             idWithLeadingBit & ~(1 << (32 - clz32(idWithLeadingBit) - 1))
           ).toString(32) + JSCompiler_inline_result;
         identifierPrefix =
-          ":" + identifierPrefix + "R" + JSCompiler_inline_result;
+          "\u00ab" + identifierPrefix + "R" + JSCompiler_inline_result;
         JSCompiler_inline_result = localIdCounter++;
         0 < JSCompiler_inline_result &&
           (identifierPrefix += "H" + JSCompiler_inline_result.toString(32));
-        identifierPrefix += ":";
+        identifierPrefix += "\u00bb";
       } else
         (JSCompiler_inline_result = globalClientIdCounter++),
           (identifierPrefix =
-            ":" +
+            "\u00ab" +
             identifierPrefix +
             "r" +
             JSCompiler_inline_result.toString(32) +
-            ":");
+            "\u00bb");
       return (hook.memoizedState = identifierPrefix);
     },
     useHostTransitionStatus: useHostTransitionStatus,
@@ -5228,7 +5231,7 @@ function createChildReconciler(shouldTrackSideEffects) {
       );
     if ("object" === typeof newChild && null !== newChild) {
       switch (newChild.$$typeof) {
-        case REACT_LEGACY_ELEMENT_TYPE:
+        case REACT_ELEMENT_TYPE:
           return (
             (lanes = createFiberFromTypeAndProps(
               newChild.type,
@@ -5292,7 +5295,7 @@ function createChildReconciler(shouldTrackSideEffects) {
         : updateTextNode(returnFiber, oldFiber, "" + newChild, lanes);
     if ("object" === typeof newChild && null !== newChild) {
       switch (newChild.$$typeof) {
-        case REACT_LEGACY_ELEMENT_TYPE:
+        case REACT_ELEMENT_TYPE:
           return newChild.key === key
             ? updateElement(returnFiber, oldFiber, newChild, lanes)
             : null;
@@ -5347,7 +5350,7 @@ function createChildReconciler(shouldTrackSideEffects) {
       );
     if ("object" === typeof newChild && null !== newChild) {
       switch (newChild.$$typeof) {
-        case REACT_LEGACY_ELEMENT_TYPE:
+        case REACT_ELEMENT_TYPE:
           return (
             (existingChildren =
               existingChildren.get(
@@ -5583,7 +5586,7 @@ function createChildReconciler(shouldTrackSideEffects) {
       (newChild = newChild.props.children);
     if ("object" === typeof newChild && null !== newChild) {
       switch (newChild.$$typeof) {
-        case REACT_LEGACY_ELEMENT_TYPE:
+        case REACT_ELEMENT_TYPE:
           a: {
             for (var key = newChild.key; null !== currentFirstChild; ) {
               if (currentFirstChild.key === key) {
@@ -8176,6 +8179,9 @@ function safelyAttachRef(current, nearestMountedAncestor) {
         case 5:
           var instanceToUse = current.stateNode;
           break;
+        case 30:
+          instanceToUse = current.stateNode;
+          break;
         default:
           instanceToUse = current.stateNode;
       }
@@ -8338,7 +8344,7 @@ function insertOrAppendPlacementNodeIntoContainer(node, before, parent) {
               : "HTML" === parent.nodeName
                 ? parent.ownerDocument.body
                 : parent),
-          supportsMoveBefore
+          supportsMoveBefore && null !== node.parentNode
             ? parent.moveBefore(node, before)
             : parent.insertBefore(node, before))
         : ((before = parent),
@@ -8348,7 +8354,7 @@ function insertOrAppendPlacementNodeIntoContainer(node, before, parent) {
               : "HTML" === before.nodeName
                 ? before.ownerDocument.body
                 : before),
-          supportsMoveBefore
+          supportsMoveBefore && null !== node.parentNode
             ? parent.moveBefore(node, null)
             : parent.appendChild(node),
           (before = before._reactRootContainer),
@@ -8377,11 +8383,11 @@ function insertOrAppendPlacementNode(node, before, parent) {
   if (5 === tag || 6 === tag)
     (node = node.stateNode),
       before
-        ? supportsMoveBefore
+        ? supportsMoveBefore && null !== node.parentNode
           ? parent.moveBefore(node, before)
           : parent.insertBefore(node, before)
         : ((before = parent),
-          supportsMoveBefore
+          supportsMoveBefore && null !== node.parentNode
             ? before.moveBefore(node, null)
             : before.appendChild(node));
   else if (
@@ -8735,6 +8741,8 @@ function commitLayoutEffectOnFiber(finishedRoot, current, finishedWork) {
         ("manual" === finishedWork.memoizedProps.mode
           ? safelyAttachRef(finishedWork, finishedWork.return)
           : safelyDetachRef(finishedWork, finishedWork.return));
+      break;
+    case 30:
       break;
     default:
       recursivelyTraverseLayoutEffects(finishedRoot, finishedWork);
@@ -9472,6 +9480,7 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
           attachSuspenseRetryListeners(finishedWork, flags)));
       break;
     case 30:
+      break;
     case 21:
       break;
     default:
@@ -9483,33 +9492,34 @@ function commitReconciliationEffects(finishedWork) {
   var flags = finishedWork.flags;
   if (flags & 2) {
     try {
-      a: {
-        for (var parent = finishedWork.return; null !== parent; ) {
-          if (isHostParent(parent)) {
-            var JSCompiler_inline_result = parent;
-            break a;
-          }
-          parent = parent.return;
+      for (
+        var hostParentFiber, parentFiber = finishedWork.return;
+        null !== parentFiber;
+
+      ) {
+        if (isHostParent(parentFiber)) {
+          hostParentFiber = parentFiber;
+          break;
         }
-        throw Error(formatProdErrorMessage(160));
+        parentFiber = parentFiber.return;
       }
-      switch (JSCompiler_inline_result.tag) {
+      if (null == hostParentFiber) throw Error(formatProdErrorMessage(160));
+      switch (hostParentFiber.tag) {
         case 27:
-          var parent$jscomp$0 = JSCompiler_inline_result.stateNode,
+          var parent = hostParentFiber.stateNode,
             before = getHostSibling(finishedWork);
-          insertOrAppendPlacementNode(finishedWork, before, parent$jscomp$0);
+          insertOrAppendPlacementNode(finishedWork, before, parent);
           break;
         case 5:
-          var parent$131 = JSCompiler_inline_result.stateNode;
-          JSCompiler_inline_result.flags & 32 &&
-            (setTextContent(parent$131, ""),
-            (JSCompiler_inline_result.flags &= -33));
+          var parent$131 = hostParentFiber.stateNode;
+          hostParentFiber.flags & 32 &&
+            (setTextContent(parent$131, ""), (hostParentFiber.flags &= -33));
           var before$132 = getHostSibling(finishedWork);
           insertOrAppendPlacementNode(finishedWork, before$132, parent$131);
           break;
         case 3:
         case 4:
-          var parent$133 = JSCompiler_inline_result.stateNode.containerInfo,
+          var parent$133 = hostParentFiber.stateNode.containerInfo,
             before$134 = getHostSibling(finishedWork);
           insertOrAppendPlacementNodeIntoContainer(
             finishedWork,
@@ -9575,6 +9585,9 @@ function recursivelyTraverseDisappearLayoutEffects(parentFiber) {
         safelyDetachRef(finishedWork, finishedWork.return);
         null === finishedWork.memoizedState &&
           recursivelyTraverseDisappearLayoutEffects(finishedWork);
+        break;
+      case 30:
+        recursivelyTraverseDisappearLayoutEffects(finishedWork);
         break;
       default:
         recursivelyTraverseDisappearLayoutEffects(finishedWork);
@@ -9696,6 +9709,8 @@ function recursivelyTraverseReappearLayoutEffects(
             includeWorkInProgressEffects
           );
         safelyAttachRef(finishedWork, finishedWork.return);
+        break;
+      case 30:
         break;
       default:
         recursivelyTraverseReappearLayoutEffects(
@@ -10580,7 +10595,8 @@ function prepareToHydrateHostInstance(fiber) {
         listenToNonDelegatedEvent("toggle", instance)),
       null != props.onScroll && listenToNonDelegatedEvent("scroll", instance),
       null != props.onScrollEnd &&
-        listenToNonDelegatedEvent("scrollend", instance),
+        (listenToNonDelegatedEvent("scrollend", instance),
+        listenToNonDelegatedEvent("scroll", instance)),
       null != props.onClick && (instance.onclick = noop$1),
       (instance = !0))
     : (instance = !1);
@@ -12551,7 +12567,7 @@ function flushSpawnedWork() {
     0 !== (finishedWork.flags & 10256)
       ? (pendingEffectsStatus = 5)
       : ((pendingEffectsStatus = 0),
-        (pendingEffectsRoot = null),
+        (pendingFinishedWork = pendingEffectsRoot = null),
         releaseRootPooledCache(root, root.pendingLanes));
     var remainingLanes = root.pendingLanes;
     0 === remainingLanes && (legacyErrorBoundariesThatAlreadyFailed = null);
@@ -12619,6 +12635,40 @@ function flushSpawnedWork() {
     markCommitStopped();
   }
 }
+function flushGestureMutations() {
+  if (6 === pendingEffectsStatus) {
+    pendingEffectsStatus = 0;
+    var root = pendingEffectsRoot,
+      prevTransition = ReactSharedInternals.T;
+    ReactSharedInternals.T = null;
+    var previousPriority = ReactDOMSharedInternals.p;
+    ReactDOMSharedInternals.p = 2;
+    var prevExecutionContext = executionContext;
+    executionContext |= 4;
+    try {
+      var rootClone = root.gestureClone;
+      if (null !== rootClone) {
+        root.gestureClone = null;
+        var rootContainer = root.containerInfo;
+        var containerInstance =
+          9 === rootContainer.nodeType
+            ? rootContainer.body
+            : "HTML" === rootContainer.nodeName
+              ? rootContainer.ownerDocument.body
+              : rootContainer;
+        var containerParent = containerInstance.parentNode;
+        if (null === containerParent) throw Error(formatProdErrorMessage(552));
+        containerParent.removeChild(rootClone);
+        containerInstance.style.viewTransitionName = "root";
+      }
+    } finally {
+      (executionContext = prevExecutionContext),
+        (ReactDOMSharedInternals.p = previousPriority),
+        (ReactSharedInternals.T = prevTransition);
+    }
+    pendingEffectsStatus = 7;
+  }
+}
 function releaseRootPooledCache(root, remainingLanes) {
   0 === (root.pooledCacheLanes &= remainingLanes) &&
     ((remainingLanes = root.pooledCache),
@@ -12626,6 +12676,40 @@ function releaseRootPooledCache(root, remainingLanes) {
       ((root.pooledCache = null), releaseCache(remainingLanes)));
 }
 function flushPendingEffects(wasDelayedCommit) {
+  flushGestureMutations();
+  flushGestureMutations();
+  if (7 === pendingEffectsStatus) {
+    pendingEffectsStatus = 0;
+    var root = pendingEffectsRoot;
+    pendingFinishedWork = pendingEffectsRoot = null;
+    pendingEffectsLanes = 0;
+    var prevTransition = ReactSharedInternals.T;
+    ReactSharedInternals.T = null;
+    var previousPriority = ReactDOMSharedInternals.p;
+    ReactDOMSharedInternals.p = 2;
+    var prevExecutionContext = executionContext;
+    executionContext |= 4;
+    try {
+      var rootContainer = root.containerInfo;
+      var containerInstance =
+        9 === rootContainer.nodeType
+          ? rootContainer.body
+          : "HTML" === rootContainer.nodeName
+            ? rootContainer.ownerDocument.body
+            : rootContainer;
+      "root" === containerInstance.style.viewTransitionName &&
+        (containerInstance.style.viewTransitionName = "");
+      var documentElement = containerInstance.ownerDocument.documentElement;
+      null !== documentElement &&
+        "none" === documentElement.style.viewTransitionName &&
+        (documentElement.style.viewTransitionName = "");
+    } finally {
+      (executionContext = prevExecutionContext),
+        (ReactDOMSharedInternals.p = previousPriority),
+        (ReactSharedInternals.T = prevTransition);
+    }
+    ensureRootIsScheduled(root);
+  }
   flushMutationEffects();
   flushLayoutEffects();
   flushSpawnedWork();
@@ -12647,7 +12731,7 @@ function flushPassiveEffects() {
     var root$jscomp$0 = pendingEffectsRoot,
       lanes = pendingEffectsLanes;
     pendingEffectsStatus = 0;
-    pendingEffectsRoot = null;
+    pendingFinishedWork = pendingEffectsRoot = null;
     pendingEffectsLanes = 0;
     if (0 !== (executionContext & 6)) throw Error(formatProdErrorMessage(331));
     null !== injectedProfilingHooks &&
@@ -13031,7 +13115,7 @@ function createFormDataWithSubmitter(form, submitter) {
   temp.parentNode.removeChild(temp);
   return form;
 }
-function extractEvents$1(
+function extractEvents$2(
   dispatchQueue,
   domEventName,
   maybeTargetInst,
@@ -13106,21 +13190,56 @@ function extractEvents$1(
     });
   }
 }
+var isScrollEndEventSupported = canUseDOM && isEventSupported("scrollend"),
+  isTouchStarted = !1,
+  isMouseDown = !1;
+function runEventInBatch(dispatchQueue) {
+  processDispatchQueue(dispatchQueue, 0);
+}
+function fireScrollEnd(targetInst, nativeEvent, nativeEventTarget) {
+  nativeEventTarget[internalScrollTimer] = void 0;
+  if (isMouseDown || isTouchStarted)
+    debounceScrollEnd(targetInst, nativeEvent, nativeEventTarget);
+  else {
+    var dispatchQueue = [];
+    targetInst = accumulateTwoPhaseListeners(targetInst, "onScrollEnd");
+    0 < targetInst.length &&
+      ((nativeEvent = new SyntheticUIEvent(
+        "onScrollEnd",
+        "scrollend",
+        null,
+        nativeEvent,
+        nativeEventTarget
+      )),
+      dispatchQueue.push({ event: nativeEvent, listeners: targetInst }));
+    batchedUpdates$1(runEventInBatch, dispatchQueue);
+  }
+}
+function debounceScrollEnd(targetInst, nativeEvent, nativeEventTarget) {
+  var existingTimer = nativeEventTarget[internalScrollTimer];
+  null != existingTimer && clearTimeout(existingTimer);
+  null !== targetInst &&
+    ((targetInst = setTimeout(
+      fireScrollEnd.bind(null, targetInst, nativeEvent, nativeEventTarget),
+      200
+    )),
+    (nativeEventTarget[internalScrollTimer] = targetInst));
+}
 for (
-  var i$jscomp$inline_1630 = 0;
-  i$jscomp$inline_1630 < simpleEventPluginEvents.length;
-  i$jscomp$inline_1630++
+  var i$jscomp$inline_1661 = 0;
+  i$jscomp$inline_1661 < simpleEventPluginEvents.length;
+  i$jscomp$inline_1661++
 ) {
-  var eventName$jscomp$inline_1631 =
-      simpleEventPluginEvents[i$jscomp$inline_1630],
-    domEventName$jscomp$inline_1632 =
-      eventName$jscomp$inline_1631.toLowerCase(),
-    capitalizedEvent$jscomp$inline_1633 =
-      eventName$jscomp$inline_1631[0].toUpperCase() +
-      eventName$jscomp$inline_1631.slice(1);
+  var eventName$jscomp$inline_1662 =
+      simpleEventPluginEvents[i$jscomp$inline_1661],
+    domEventName$jscomp$inline_1663 =
+      eventName$jscomp$inline_1662.toLowerCase(),
+    capitalizedEvent$jscomp$inline_1664 =
+      eventName$jscomp$inline_1662[0].toUpperCase() +
+      eventName$jscomp$inline_1662.slice(1);
   registerSimpleEvent(
-    domEventName$jscomp$inline_1632,
-    "on" + capitalizedEvent$jscomp$inline_1633
+    domEventName$jscomp$inline_1663,
+    "on" + capitalizedEvent$jscomp$inline_1664
   );
 }
 registerSimpleEvent(ANIMATION_END, "onAnimationEnd");
@@ -13164,6 +13283,12 @@ registerTwoPhaseEvent(
 registerTwoPhaseEvent(
   "onCompositionUpdate",
   "compositionupdate focusout keydown keypress keyup mousedown".split(" ")
+);
+registerTwoPhaseEvent(
+  "onScrollEnd",
+  "scroll scrollend touchstart touchcancel touchend mousedown mouseup".split(
+    " "
+  )
 );
 var mediaEventTypes =
     "abort canplay canplaythrough durationchange emptied encrypted ended error loadeddata loadedmetadata loadstart pause play playing progress ratechange resize seeked seeking stalled suspend timeupdate volumechange waiting".split(
@@ -13447,35 +13572,15 @@ function dispatchEventForPluginEventSystem(
           case "beforetoggle":
             SyntheticEventCtor = SyntheticToggleEvent;
         }
-        var inCapturePhase = 0 !== (eventSystemFlags & 4),
-          accumulateTargetOnly =
-            !inCapturePhase &&
-            ("scroll" === domEventName || "scrollend" === domEventName),
-          reactEventName = inCapturePhase
-            ? null !== reactName
-              ? reactName + "Capture"
-              : null
-            : reactName;
-        inCapturePhase = [];
-        for (
-          var instance = targetInst, lastHostComponent;
-          null !== instance;
-
-        ) {
-          var _instance = instance;
-          lastHostComponent = _instance.stateNode;
-          _instance = _instance.tag;
-          (5 !== _instance && 26 !== _instance && 27 !== _instance) ||
-            null === lastHostComponent ||
-            null === reactEventName ||
-            ((_instance = getListener(instance, reactEventName)),
-            null != _instance &&
-              inCapturePhase.push(
-                createDispatchListener(instance, _instance, lastHostComponent)
-              ));
-          if (accumulateTargetOnly) break;
-          instance = instance.return;
-        }
+        var inCapturePhase = 0 !== (eventSystemFlags & 4);
+        inCapturePhase = accumulateSinglePhaseListeners(
+          targetInst,
+          reactName,
+          nativeEvent.type,
+          inCapturePhase,
+          !inCapturePhase &&
+            ("scroll" === domEventName || "scrollend" === domEventName)
+        );
         0 < inCapturePhase.length &&
           ((reactName = new SyntheticEventCtor(
             reactName,
@@ -13517,108 +13622,103 @@ function dispatchEventForPluginEventSystem(
               (reactEventType = reactEventType
                 ? getClosestInstanceFromNode(reactEventType)
                 : null),
-              null !== reactEventType &&
-                ((accumulateTargetOnly =
-                  getNearestMountedFiber(reactEventType)),
-                (inCapturePhase = reactEventType.tag),
-                reactEventType !== accumulateTargetOnly ||
-                  (5 !== inCapturePhase &&
-                    27 !== inCapturePhase &&
-                    6 !== inCapturePhase)))
-            )
-              reactEventType = null;
+              null !== reactEventType)
+            ) {
+              inCapturePhase = getNearestMountedFiber(reactEventType);
+              var tag = reactEventType.tag;
+              if (
+                reactEventType !== inCapturePhase ||
+                (5 !== tag && 27 !== tag && 6 !== tag)
+              )
+                reactEventType = null;
+            }
           } else (SyntheticEventCtor = null), (reactEventType = targetInst);
           if (SyntheticEventCtor !== reactEventType) {
-            inCapturePhase = SyntheticMouseEvent;
-            _instance = "onMouseLeave";
-            reactEventName = "onMouseEnter";
-            instance = "mouse";
+            tag = SyntheticMouseEvent;
+            var leaveEventType = "onMouseLeave",
+              enterEventType = "onMouseEnter",
+              eventTypePrefix = "mouse";
             if ("pointerout" === domEventName || "pointerover" === domEventName)
-              (inCapturePhase = SyntheticPointerEvent),
-                (_instance = "onPointerLeave"),
-                (reactEventName = "onPointerEnter"),
-                (instance = "pointer");
-            accumulateTargetOnly =
+              (tag = SyntheticPointerEvent),
+                (leaveEventType = "onPointerLeave"),
+                (enterEventType = "onPointerEnter"),
+                (eventTypePrefix = "pointer");
+            inCapturePhase =
               null == SyntheticEventCtor
                 ? reactName
                 : getNodeFromInstance(SyntheticEventCtor);
-            lastHostComponent =
+            var toNode =
               null == reactEventType
                 ? reactName
                 : getNodeFromInstance(reactEventType);
-            reactName = new inCapturePhase(
-              _instance,
-              instance + "leave",
+            reactName = new tag(
+              leaveEventType,
+              eventTypePrefix + "leave",
               SyntheticEventCtor,
               nativeEvent,
               nativeEventTarget
             );
-            reactName.target = accumulateTargetOnly;
-            reactName.relatedTarget = lastHostComponent;
-            _instance = null;
+            reactName.target = inCapturePhase;
+            reactName.relatedTarget = toNode;
+            leaveEventType = null;
             getClosestInstanceFromNode(nativeEventTarget) === targetInst &&
-              ((inCapturePhase = new inCapturePhase(
-                reactEventName,
-                instance + "enter",
+              ((tag = new tag(
+                enterEventType,
+                eventTypePrefix + "enter",
                 reactEventType,
                 nativeEvent,
                 nativeEventTarget
               )),
-              (inCapturePhase.target = lastHostComponent),
-              (inCapturePhase.relatedTarget = accumulateTargetOnly),
-              (_instance = inCapturePhase));
-            accumulateTargetOnly = _instance;
+              (tag.target = toNode),
+              (tag.relatedTarget = inCapturePhase),
+              (leaveEventType = tag));
+            inCapturePhase = leaveEventType;
             if (SyntheticEventCtor && reactEventType)
               b: {
-                inCapturePhase = SyntheticEventCtor;
-                reactEventName = reactEventType;
-                instance = 0;
+                tag = SyntheticEventCtor;
+                enterEventType = reactEventType;
+                eventTypePrefix = 0;
+                for (toNode = tag; toNode; toNode = getParent(toNode))
+                  eventTypePrefix++;
+                toNode = 0;
                 for (
-                  lastHostComponent = inCapturePhase;
-                  lastHostComponent;
-                  lastHostComponent = getParent(lastHostComponent)
+                  leaveEventType = enterEventType;
+                  leaveEventType;
+                  leaveEventType = getParent(leaveEventType)
                 )
-                  instance++;
-                lastHostComponent = 0;
-                for (
-                  _instance = reactEventName;
-                  _instance;
-                  _instance = getParent(_instance)
-                )
-                  lastHostComponent++;
-                for (; 0 < instance - lastHostComponent; )
-                  (inCapturePhase = getParent(inCapturePhase)), instance--;
-                for (; 0 < lastHostComponent - instance; )
-                  (reactEventName = getParent(reactEventName)),
-                    lastHostComponent--;
-                for (; instance--; ) {
+                  toNode++;
+                for (; 0 < eventTypePrefix - toNode; )
+                  (tag = getParent(tag)), eventTypePrefix--;
+                for (; 0 < toNode - eventTypePrefix; )
+                  (enterEventType = getParent(enterEventType)), toNode--;
+                for (; eventTypePrefix--; ) {
                   if (
-                    inCapturePhase === reactEventName ||
-                    (null !== reactEventName &&
-                      inCapturePhase === reactEventName.alternate)
+                    tag === enterEventType ||
+                    (null !== enterEventType &&
+                      tag === enterEventType.alternate)
                   )
                     break b;
-                  inCapturePhase = getParent(inCapturePhase);
-                  reactEventName = getParent(reactEventName);
+                  tag = getParent(tag);
+                  enterEventType = getParent(enterEventType);
                 }
-                inCapturePhase = null;
+                tag = null;
               }
-            else inCapturePhase = null;
+            else tag = null;
             null !== SyntheticEventCtor &&
               accumulateEnterLeaveListenersForEvent(
                 dispatchQueue,
                 reactName,
                 SyntheticEventCtor,
-                inCapturePhase,
+                tag,
                 !1
               );
             null !== reactEventType &&
-              null !== accumulateTargetOnly &&
+              null !== inCapturePhase &&
               accumulateEnterLeaveListenersForEvent(
                 dispatchQueue,
-                accumulateTargetOnly,
-                reactEventType,
                 inCapturePhase,
+                reactEventType,
+                tag,
                 !0
               );
           }
@@ -13763,13 +13863,65 @@ function dispatchEventForPluginEventSystem(
               listeners: eventType
             }),
             (handleEventFunc.data = fallbackData));
-      extractEvents$1(
+      extractEvents$2(
         dispatchQueue,
         domEventName,
         targetInst,
         nativeEvent,
         nativeEventTarget
       );
+    }
+    a: if (
+      ((fallbackData = 0 !== (eventSystemFlags & 4)),
+      "scrollend" !== domEventName)
+    ) {
+      if (!isScrollEndEventSupported && fallbackData)
+        switch (domEventName) {
+          case "scroll":
+            null !== nativeEventTarget &&
+              debounceScrollEnd(targetInst, nativeEvent, nativeEventTarget);
+            break;
+          case "touchstart":
+            isTouchStarted = !0;
+            break;
+          case "touchcancel":
+          case "touchend":
+            isTouchStarted = !1;
+            break;
+          case "mousedown":
+            isMouseDown = !0;
+            break;
+          case "mouseup":
+            isMouseDown = !1;
+        }
+    } else {
+      if (!isScrollEndEventSupported && null !== nativeEventTarget)
+        if (
+          ((eventType = nativeEventTarget[internalScrollTimer]),
+          null != eventType)
+        )
+          clearTimeout(eventType),
+            (nativeEventTarget[internalScrollTimer] = void 0);
+        else break a;
+      targetInst = accumulateSinglePhaseListeners(
+        targetInst,
+        "onScrollEnd",
+        "scrollend",
+        fallbackData,
+        !fallbackData
+      );
+      0 < targetInst.length &&
+        ((nativeEventTarget = new SyntheticUIEvent(
+          "onScrollEnd",
+          "scrollend",
+          null,
+          nativeEvent,
+          nativeEventTarget
+        )),
+        dispatchQueue.push({
+          event: nativeEventTarget,
+          listeners: targetInst
+        }));
     }
     processDispatchQueue(dispatchQueue, eventSystemFlags);
   });
@@ -13780,6 +13932,35 @@ function createDispatchListener(instance, listener, currentTarget) {
     listener: listener,
     currentTarget: currentTarget
   };
+}
+function accumulateSinglePhaseListeners(
+  targetFiber,
+  reactName,
+  nativeEventType,
+  inCapturePhase,
+  accumulateTargetOnly
+) {
+  reactName = inCapturePhase
+    ? null !== reactName
+      ? reactName + "Capture"
+      : null
+    : reactName;
+  for (nativeEventType = []; null !== targetFiber; ) {
+    var _instance = targetFiber;
+    inCapturePhase = _instance.stateNode;
+    _instance = _instance.tag;
+    (5 !== _instance && 26 !== _instance && 27 !== _instance) ||
+      null === inCapturePhase ||
+      null === reactName ||
+      ((_instance = getListener(targetFiber, reactName)),
+      null != _instance &&
+        nativeEventType.push(
+          createDispatchListener(targetFiber, _instance, inCapturePhase)
+        ));
+    if (accumulateTargetOnly) break;
+    targetFiber = targetFiber.return;
+  }
+  return nativeEventType;
 }
 function accumulateTwoPhaseListeners(targetFiber, reactName) {
   for (
@@ -13802,9 +13983,10 @@ function accumulateTwoPhaseListeners(targetFiber, reactName) {
         listeners.push(
           createDispatchListener(targetFiber, _instance2, stateNode)
         ));
+    if (3 === targetFiber.tag) return listeners;
     targetFiber = targetFiber.return;
   }
-  return listeners;
+  return [];
 }
 function getParent(inst) {
   if (null === inst) return null;
@@ -13969,7 +14151,9 @@ function setProp(domElement, tag, key, value, props, prevValue) {
       null != value && listenToNonDelegatedEvent("scroll", domElement);
       break;
     case "onScrollEnd":
-      null != value && listenToNonDelegatedEvent("scrollend", domElement);
+      null != value &&
+        (listenToNonDelegatedEvent("scrollend", domElement),
+        listenToNonDelegatedEvent("scroll", domElement));
       break;
     case "dangerouslySetInnerHTML":
       if (null != value) {
@@ -14206,7 +14390,9 @@ function setPropOnCustomElement(domElement, tag, key, value, props, prevValue) {
       null != value && listenToNonDelegatedEvent("scroll", domElement);
       break;
     case "onScrollEnd":
-      null != value && listenToNonDelegatedEvent("scrollend", domElement);
+      null != value &&
+        (listenToNonDelegatedEvent("scrollend", domElement),
+        listenToNonDelegatedEvent("scroll", domElement));
       break;
     case "onClick":
       null != value && (domElement.onclick = noop$1);
@@ -14410,6 +14596,8 @@ function setInitialProperties(domElement, tag, props) {
           }
       return;
     case "dialog":
+      listenToNonDelegatedEvent("beforetoggle", domElement);
+      listenToNonDelegatedEvent("toggle", domElement);
       listenToNonDelegatedEvent("cancel", domElement);
       listenToNonDelegatedEvent("close", domElement);
       break;
@@ -16649,16 +16837,16 @@ ReactDOMHydrationRoot.prototype.unstable_scheduleHydration = function (target) {
     0 === i && attemptExplicitHydrationTarget(target);
   }
 };
-var isomorphicReactPackageVersion$jscomp$inline_1880 = React.version;
+var isomorphicReactPackageVersion$jscomp$inline_1912 = React.version;
 if (
-  "19.1.0-native-fb-a84862db-20250218" !==
-  isomorphicReactPackageVersion$jscomp$inline_1880
+  "19.1.0-native-fb-f3c95600-20250313" !==
+  isomorphicReactPackageVersion$jscomp$inline_1912
 )
   throw Error(
     formatProdErrorMessage(
       527,
-      isomorphicReactPackageVersion$jscomp$inline_1880,
-      "19.1.0-native-fb-a84862db-20250218"
+      isomorphicReactPackageVersion$jscomp$inline_1912,
+      "19.1.0-native-fb-f3c95600-20250313"
     )
   );
 ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
@@ -16678,12 +16866,12 @@ ReactDOMSharedInternals.findDOMNode = function (componentOrElement) {
     null === componentOrElement ? null : componentOrElement.stateNode;
   return componentOrElement;
 };
-var internals$jscomp$inline_1887 = {
+var internals$jscomp$inline_1919 = {
   bundleType: 0,
-  version: "19.1.0-native-fb-a84862db-20250218",
+  version: "19.1.0-native-fb-f3c95600-20250313",
   rendererPackageName: "react-dom",
   currentDispatcherRef: ReactSharedInternals,
-  reconcilerVersion: "19.1.0-native-fb-a84862db-20250218",
+  reconcilerVersion: "19.1.0-native-fb-f3c95600-20250313",
   getLaneLabelMap: function () {
     for (
       var map = new Map(), lane = 1, index$294 = 0;
@@ -16701,16 +16889,16 @@ var internals$jscomp$inline_1887 = {
   }
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
-  var hook$jscomp$inline_2305 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
+  var hook$jscomp$inline_2351 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (
-    !hook$jscomp$inline_2305.isDisabled &&
-    hook$jscomp$inline_2305.supportsFiber
+    !hook$jscomp$inline_2351.isDisabled &&
+    hook$jscomp$inline_2351.supportsFiber
   )
     try {
-      (rendererID = hook$jscomp$inline_2305.inject(
-        internals$jscomp$inline_1887
+      (rendererID = hook$jscomp$inline_2351.inject(
+        internals$jscomp$inline_1919
       )),
-        (injectedHook = hook$jscomp$inline_2305);
+        (injectedHook = hook$jscomp$inline_2351);
     } catch (err) {}
 }
 exports.createRoot = function (container, options) {
@@ -16802,4 +16990,4 @@ exports.hydrateRoot = function (container, initialChildren, options) {
   listenToAllSupportedEvents(container);
   return new ReactDOMHydrationRoot(initialChildren);
 };
-exports.version = "19.1.0-native-fb-a84862db-20250218";
+exports.version = "19.1.0-native-fb-f3c95600-20250313";

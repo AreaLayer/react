@@ -7,13 +7,17 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<9b0268f5d1ff5b2745d004a0a5959639>>
+ * @generated SignedSource<<1d61cd86abbebf19243666ec0a10f40e>>
  */
 
 "use strict";
-var enableUseEffectCRUDOverload =
-    require("ReactNativeInternalFeatureFlags").enableUseEffectCRUDOverload,
+var dynamicFlagsUntyped = require("ReactNativeInternalFeatureFlags"),
+  enableUseEffectCRUDOverload = dynamicFlagsUntyped.enableUseEffectCRUDOverload,
+  renameElementSymbol = dynamicFlagsUntyped.renameElementSymbol,
   REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+  REACT_ELEMENT_TYPE = renameElementSymbol
+    ? Symbol.for("react.transitional.element")
+    : REACT_LEGACY_ELEMENT_TYPE,
   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
@@ -87,7 +91,7 @@ var isArrayImpl = Array.isArray,
 function ReactElement(type, key, self, source, owner, props) {
   self = props.ref;
   return {
-    $$typeof: REACT_LEGACY_ELEMENT_TYPE,
+    $$typeof: REACT_ELEMENT_TYPE,
     type: type,
     key: key,
     ref: void 0 !== self ? self : null,
@@ -119,7 +123,7 @@ function isValidElement(object) {
   return (
     "object" === typeof object &&
     null !== object &&
-    object.$$typeof === REACT_LEGACY_ELEMENT_TYPE
+    object.$$typeof === REACT_ELEMENT_TYPE
   );
 }
 function escape(key) {
@@ -184,7 +188,7 @@ function mapIntoArray(children, array, escapedPrefix, nameSoFar, callback) {
         break;
       case "object":
         switch (children.$$typeof) {
-          case REACT_LEGACY_ELEMENT_TYPE:
+          case REACT_ELEMENT_TYPE:
           case REACT_PORTAL_TYPE:
             invokeCallback = !0;
             break;
@@ -603,4 +607,4 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-native-fb-a84862db-20250218";
+exports.version = "19.1.0-native-fb-f3c95600-20250313";

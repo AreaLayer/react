@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<7d126b09ac22a89024dd6048435f3d1d>>
+ * @generated SignedSource<<53df6bac7979f38722e1caf0ed3c9799>>
  */
 
 "use strict";
@@ -20,12 +20,32 @@ function _defineProperties(target, props) {
     descriptor.enumerable = descriptor.enumerable || !1;
     descriptor.configurable = !0;
     "value" in descriptor && (descriptor.writable = !0);
-    Object.defineProperty(target, descriptor.key, descriptor);
+    var JSCompiler_temp_const = Object,
+      JSCompiler_temp_const$jscomp$0 = JSCompiler_temp_const.defineProperty;
+    a: {
+      var i$jscomp$0 = descriptor.key;
+      if ("object" == typeof i$jscomp$0 && i$jscomp$0) {
+        var e = i$jscomp$0[Symbol.toPrimitive];
+        if (void 0 !== e) {
+          i$jscomp$0 = e.call(i$jscomp$0, "string");
+          if ("object" != typeof i$jscomp$0) break a;
+          throw new TypeError("@@toPrimitive must return a primitive value.");
+        }
+        i$jscomp$0 = String(i$jscomp$0);
+      }
+    }
+    JSCompiler_temp_const$jscomp$0.call(
+      JSCompiler_temp_const,
+      target,
+      "symbol" == typeof i$jscomp$0 ? i$jscomp$0 : i$jscomp$0 + "",
+      descriptor
+    );
   }
 }
 function _createClass(Constructor, protoProps, staticProps) {
   protoProps && _defineProperties(Constructor.prototype, protoProps);
   staticProps && _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", { writable: !1 });
   return Constructor;
 }
 var assign = Object.assign;
@@ -1579,7 +1599,7 @@ function trackUsedThenable(thenableState, thenable, index) {
         thenableState = workInProgressRoot;
         if (null !== thenableState && 100 < thenableState.shellSuspendCounter)
           throw Error(
-            "async/await is not yet supported in Client Components, only Server Components. This error is often caused by accidentally adding `'use client'` to a module that was originally written for the server."
+            "An unknown Component is an async Client Component. Only Server Components can be async at the moment. This error is often caused by accidentally adding `'use client'` to a module that was originally written for the server."
           );
         thenableState = thenable;
         thenableState.status = "pending";
@@ -3233,7 +3253,11 @@ var ContextOnlyDispatcher = {
         identifierPrefix = workInProgressRoot.identifierPrefix,
         globalClientId = globalClientIdCounter++;
       identifierPrefix =
-        ":" + identifierPrefix + "r" + globalClientId.toString(32) + ":";
+        "\u00ab" +
+        identifierPrefix +
+        "r" +
+        globalClientId.toString(32) +
+        "\u00bb";
       return (hook.memoizedState = identifierPrefix);
     },
     useHostTransitionStatus: useHostTransitionStatus,
@@ -6884,6 +6908,9 @@ function safelyAttachRef(current, nearestMountedAncestor) {
         case 5:
           var instanceToUse = getPublicInstance(current.stateNode);
           break;
+        case 30:
+          instanceToUse = current.stateNode;
+          break;
         default:
           instanceToUse = current.stateNode;
       }
@@ -7252,6 +7279,8 @@ function commitLayoutEffectOnFiber(finishedRoot, current, finishedWork) {
         ("manual" === finishedWork.memoizedProps.mode
           ? safelyAttachRef(finishedWork, finishedWork.return)
           : safelyDetachRef(finishedWork, finishedWork.return));
+      break;
+    case 30:
       break;
     default:
       recursivelyTraverseLayoutEffects(finishedRoot, finishedWork);
@@ -7693,6 +7722,7 @@ function commitMutationEffectsOnFiber(finishedWork, root) {
           attachSuspenseRetryListeners(finishedWork, flags)));
       break;
     case 30:
+      break;
     case 21:
       break;
     default:
@@ -7704,30 +7734,32 @@ function commitReconciliationEffects(finishedWork) {
   var flags = finishedWork.flags;
   if (flags & 2) {
     try {
-      a: {
-        for (var parent = finishedWork.return; null !== parent; ) {
-          if (isHostParent(parent)) {
-            var JSCompiler_inline_result = parent;
-            break a;
-          }
-          parent = parent.return;
+      for (
+        var hostParentFiber, parentFiber = finishedWork.return;
+        null !== parentFiber;
+
+      ) {
+        if (isHostParent(parentFiber)) {
+          hostParentFiber = parentFiber;
+          break;
         }
+        parentFiber = parentFiber.return;
+      }
+      if (null == hostParentFiber)
         throw Error(
           "Expected to find a host parent. This error is likely caused by a bug in React. Please file an issue."
         );
-      }
-      switch (JSCompiler_inline_result.tag) {
+      switch (hostParentFiber.tag) {
         case 27:
         case 5:
-          var parent$jscomp$0 = JSCompiler_inline_result.stateNode;
-          JSCompiler_inline_result.flags & 32 &&
-            (JSCompiler_inline_result.flags &= -33);
+          var parent = hostParentFiber.stateNode;
+          hostParentFiber.flags & 32 && (hostParentFiber.flags &= -33);
           var before = getHostSibling(finishedWork);
-          insertOrAppendPlacementNode(finishedWork, before, parent$jscomp$0);
+          insertOrAppendPlacementNode(finishedWork, before, parent);
           break;
         case 3:
         case 4:
-          var parent$122 = JSCompiler_inline_result.stateNode.containerInfo,
+          var parent$122 = hostParentFiber.stateNode.containerInfo,
             before$123 = getHostSibling(finishedWork);
           insertOrAppendPlacementNodeIntoContainer(
             finishedWork,
@@ -7785,6 +7817,9 @@ function recursivelyTraverseDisappearLayoutEffects(parentFiber) {
         safelyDetachRef(finishedWork, finishedWork.return);
         null === finishedWork.memoizedState &&
           recursivelyTraverseDisappearLayoutEffects(finishedWork);
+        break;
+      case 30:
+        recursivelyTraverseDisappearLayoutEffects(finishedWork);
         break;
       default:
         recursivelyTraverseDisappearLayoutEffects(finishedWork);
@@ -7898,6 +7933,8 @@ function recursivelyTraverseReappearLayoutEffects(
             includeWorkInProgressEffects
           );
         safelyAttachRef(finishedWork, finishedWork.return);
+        break;
+      case 30:
         break;
       default:
         recursivelyTraverseReappearLayoutEffects(
@@ -9416,7 +9453,7 @@ function flushSpawnedWork() {
     0 !== (finishedWork.flags & 10256)
       ? (pendingEffectsStatus = 5)
       : ((pendingEffectsStatus = 0),
-        (pendingEffectsRoot = null),
+        (pendingFinishedWork = pendingEffectsRoot = null),
         releaseRootPooledCache(root, root.pendingLanes));
     var remainingLanes = root.pendingLanes;
     0 === remainingLanes && (legacyErrorBoundariesThatAlreadyFailed = null);
@@ -9483,6 +9520,26 @@ function flushSpawnedWork() {
     markCommitStopped();
   }
 }
+function flushGestureMutations() {
+  if (6 === pendingEffectsStatus) {
+    pendingEffectsStatus = 0;
+    var root = pendingEffectsRoot,
+      prevTransition = ReactSharedInternals.T;
+    ReactSharedInternals.T = null;
+    var previousPriority = currentUpdatePriority;
+    currentUpdatePriority = 2;
+    var prevExecutionContext = executionContext;
+    executionContext |= 4;
+    try {
+      null !== root.gestureClone && (root.gestureClone = null);
+    } finally {
+      (executionContext = prevExecutionContext),
+        (currentUpdatePriority = previousPriority),
+        (ReactSharedInternals.T = prevTransition);
+    }
+    pendingEffectsStatus = 7;
+  }
+}
 function releaseRootPooledCache(root, remainingLanes) {
   0 === (root.pooledCacheLanes &= remainingLanes) &&
     ((remainingLanes = root.pooledCache),
@@ -9490,6 +9547,23 @@ function releaseRootPooledCache(root, remainingLanes) {
       ((root.pooledCache = null), releaseCache(remainingLanes)));
 }
 function flushPendingEffects(wasDelayedCommit) {
+  flushGestureMutations();
+  flushGestureMutations();
+  if (7 === pendingEffectsStatus) {
+    pendingEffectsStatus = 0;
+    var root = pendingEffectsRoot;
+    pendingFinishedWork = pendingEffectsRoot = null;
+    pendingEffectsLanes = 0;
+    var prevTransition = ReactSharedInternals.T,
+      previousPriority = currentUpdatePriority;
+    currentUpdatePriority = 2;
+    var prevExecutionContext = executionContext;
+    executionContext |= 4;
+    executionContext = prevExecutionContext;
+    currentUpdatePriority = previousPriority;
+    ReactSharedInternals.T = prevTransition;
+    ensureRootIsScheduled(root);
+  }
   flushMutationEffects();
   flushLayoutEffects();
   flushSpawnedWork();
@@ -9511,7 +9585,7 @@ function flushPassiveEffects() {
     var root$jscomp$0 = pendingEffectsRoot,
       lanes = pendingEffectsLanes;
     pendingEffectsStatus = 0;
-    pendingEffectsRoot = null;
+    pendingFinishedWork = pendingEffectsRoot = null;
     pendingEffectsLanes = 0;
     if (0 !== (executionContext & 6))
       throw Error("Cannot flush passive effects while already rendering.");
@@ -10073,23 +10147,20 @@ function toJSON(inst) {
       var excluded = ["children"];
       if (null == _inst$props) _inst$props = {};
       else {
-        var target = {},
-          sourceKeys = Object.keys(_inst$props),
-          i;
-        for (i = 0; i < sourceKeys.length; i++) {
-          var key = sourceKeys[i];
-          0 <= excluded.indexOf(key) || (target[key] = _inst$props[key]);
-        }
+        var target = {};
+        for (key in _inst$props)
+          !Object.prototype.hasOwnProperty.call(_inst$props, key) ||
+            0 <= excluded.indexOf(key) ||
+            (target[key] = _inst$props[key]);
         _inst$props = target;
       }
       excluded = null;
       if (inst.children && inst.children.length)
-        for (target = 0; target < inst.children.length; target++)
-          (sourceKeys = toJSON(inst.children[target])),
-            null !== sourceKeys &&
-              (null === excluded
-                ? (excluded = [sourceKeys])
-                : excluded.push(sourceKeys));
+        for (target = 0; target < inst.children.length; target++) {
+          var key = toJSON(inst.children[target]);
+          null !== key &&
+            (null === excluded ? (excluded = [key]) : excluded.push(key));
+        }
       inst = { type: inst.type, props: _inst$props, children: excluded };
       Object.defineProperty(inst, "$$typeof", {
         value: Symbol.for("react.test.json")
@@ -10280,7 +10351,7 @@ var ReactTestInstance = (function () {
       1 < arguments.length && void 0 !== arguments[1] ? arguments[1] : null
     );
   };
-  _createClass(ReactTestInstance, [
+  return _createClass(ReactTestInstance, [
     {
       key: "instance",
       get: function () {
@@ -10322,7 +10393,6 @@ var ReactTestInstance = (function () {
       }
     }
   ]);
-  return ReactTestInstance;
 })();
 function _findAll(root, predicate, options) {
   var deep = options ? options.deep : !0,
@@ -10353,12 +10423,12 @@ function wrapFiber(fiber) {
     fiberToWrapper.set(fiber, wrapper));
   return wrapper;
 }
-var internals$jscomp$inline_1207 = {
+var internals$jscomp$inline_1231 = {
   bundleType: 0,
-  version: "19.1.0-native-fb-a84862db-20250218",
+  version: "19.1.0-native-fb-f3c95600-20250313",
   rendererPackageName: "react-test-renderer",
   currentDispatcherRef: ReactSharedInternals,
-  reconcilerVersion: "19.1.0-native-fb-a84862db-20250218",
+  reconcilerVersion: "19.1.0-native-fb-f3c95600-20250313",
   getLaneLabelMap: function () {
     for (
       var map = new Map(), lane = 1, index$147 = 0;
@@ -10376,16 +10446,16 @@ var internals$jscomp$inline_1207 = {
   }
 };
 if ("undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__) {
-  var hook$jscomp$inline_1447 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
+  var hook$jscomp$inline_1484 = __REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (
-    !hook$jscomp$inline_1447.isDisabled &&
-    hook$jscomp$inline_1447.supportsFiber
+    !hook$jscomp$inline_1484.isDisabled &&
+    hook$jscomp$inline_1484.supportsFiber
   )
     try {
-      (rendererID = hook$jscomp$inline_1447.inject(
-        internals$jscomp$inline_1207
+      (rendererID = hook$jscomp$inline_1484.inject(
+        internals$jscomp$inline_1231
       )),
-        (injectedHook = hook$jscomp$inline_1447);
+        (injectedHook = hook$jscomp$inline_1484);
     } catch (err) {}
 }
 exports._Scheduler = Scheduler;
@@ -10509,4 +10579,4 @@ exports.unstable_batchedUpdates = function (fn, a) {
         flushSyncWorkAcrossRoots_impl(0, !0));
   }
 };
-exports.version = "19.1.0-native-fb-a84862db-20250218";
+exports.version = "19.1.0-native-fb-f3c95600-20250313";
