@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<720cae6e180874c8223fc1b37c40df0a>>
+ * @generated SignedSource<<b74e7ac299922e84f8e73289cbe2ed09>>
  */
 
 "use strict";
@@ -23,8 +23,6 @@ __DEV__ &&
       switch (type) {
         case REACT_FRAGMENT_TYPE:
           return "Fragment";
-        case REACT_PORTAL_TYPE:
-          return "Portal";
         case REACT_PROFILER_TYPE:
           return "Profiler";
         case REACT_STRICT_MODE_TYPE:
@@ -33,6 +31,8 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_ACTIVITY_TYPE:
+          return "Activity";
       }
       if ("object" === typeof type)
         switch (
@@ -42,6 +42,8 @@ __DEV__ &&
             ),
           type.$$typeof)
         ) {
+          case REACT_PORTAL_TYPE:
+            return "Portal";
           case REACT_CONTEXT_TYPE:
             return (type.displayName || "Context") + ".Provider";
           case REACT_CONSUMER_TYPE:
@@ -114,6 +116,9 @@ __DEV__ &&
     function getOwner() {
       var dispatcher = ReactSharedInternals.A;
       return null === dispatcher ? null : dispatcher.getOwner();
+    }
+    function UnknownOwner() {
+      return Error("react-stack-top-frame");
     }
     function hasValidKey(config) {
       if (hasOwnProperty.call(config, "key")) {
@@ -300,6 +305,7 @@ __DEV__ &&
       REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"),
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy"),
+      REACT_ACTIVITY_TYPE = Symbol.for("react.activity"),
       REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"),
       ReactSharedInternals =
         React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
@@ -309,9 +315,19 @@ __DEV__ &&
         ? console.createTask
         : function () {
             return null;
-          },
-      specialPropKeyWarningShown;
+          };
+    React = {
+      "react-stack-bottom-frame": function (callStackForError) {
+        return callStackForError();
+      }
+    };
+    var specialPropKeyWarningShown;
     var didWarnAboutElementRef = {};
+    var unknownOwnerDebugStack = React["react-stack-bottom-frame"].bind(
+      React,
+      UnknownOwner
+    )();
+    var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
     var didWarnAboutKeySpread = {};
     exports.Fragment = REACT_FRAGMENT_TYPE;
     exports.jsxDEV = function (
@@ -322,6 +338,8 @@ __DEV__ &&
       source,
       self
     ) {
+      var trackActualOwner =
+        1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return jsxDEVImpl(
         type,
         config,
@@ -329,8 +347,10 @@ __DEV__ &&
         isStaticChildren,
         source,
         self,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        trackActualOwner
+          ? Error("react-stack-top-frame")
+          : unknownOwnerDebugStack,
+        trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
   })();

@@ -7,7 +7,7 @@
  * @noflow
  * @nolint
  * @preventMunge
- * @generated SignedSource<<4dce0afaf44bea5226b52f8204930e58>>
+ * @generated SignedSource<<dbb58bd948b0f28536d706016e823048>>
  */
 
 "use strict";
@@ -89,15 +89,13 @@ __DEV__ &&
     function getComponentNameFromType(type) {
       if (null == type) return null;
       if ("function" === typeof type)
-        return type.$$typeof === REACT_CLIENT_REFERENCE$1
+        return type.$$typeof === REACT_CLIENT_REFERENCE
           ? null
           : type.displayName || type.name || null;
       if ("string" === typeof type) return type;
       switch (type) {
         case REACT_FRAGMENT_TYPE:
           return "Fragment";
-        case REACT_PORTAL_TYPE:
-          return "Portal";
         case REACT_PROFILER_TYPE:
           return "Profiler";
         case REACT_STRICT_MODE_TYPE:
@@ -106,6 +104,8 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_ACTIVITY_TYPE:
+          return "Activity";
       }
       if ("object" === typeof type)
         switch (
@@ -115,6 +115,8 @@ __DEV__ &&
             ),
           type.$$typeof)
         ) {
+          case REACT_PORTAL_TYPE:
+            return "Portal";
           case REACT_CONTEXT_TYPE:
             return (type.displayName || "Context") + ".Provider";
           case REACT_CONSUMER_TYPE:
@@ -160,6 +162,9 @@ __DEV__ &&
     function getOwner() {
       var dispatcher = ReactSharedInternals.A;
       return null === dispatcher ? null : dispatcher.getOwner();
+    }
+    function UnknownOwner() {
+      return Error("react-stack-top-frame");
     }
     function hasValidKey(config) {
       if (hasOwnProperty.call(config, "key")) {
@@ -664,11 +669,10 @@ __DEV__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart &&
       __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-    var dynamicFlags = require("ReactNativeInternalFeatureFlags"),
-      enableUseEffectCRUDOverload = dynamicFlags.enableUseEffectCRUDOverload;
-    dynamicFlags = dynamicFlags.renameElementSymbol;
-    var REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
-      REACT_ELEMENT_TYPE = dynamicFlags
+    var renameElementSymbol =
+        require("ReactNativeInternalFeatureFlags").renameElementSymbol,
+      REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+      REACT_ELEMENT_TYPE = renameElementSymbol
         ? Symbol.for("react.transitional.element")
         : REACT_LEGACY_ELEMENT_TYPE,
       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
@@ -683,8 +687,8 @@ __DEV__ &&
       REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"),
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy");
-    dynamicFlags = Symbol.for("react.scope");
-    var REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen");
+    renameElementSymbol = Symbol.for("react.scope");
+    var REACT_ACTIVITY_TYPE = Symbol.for("react.activity");
     REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.legacy_hidden");
     var REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
       REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
@@ -741,7 +745,7 @@ __DEV__ &&
     assign(fnName, Component.prototype);
     fnName.isPureReactComponent = !0;
     var isArrayImpl = Array.isArray,
-      REACT_CLIENT_REFERENCE$1 = Symbol.for("react.client.reference"),
+      REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"),
       ReactSharedInternals = {
         H: null,
         A: null,
@@ -753,21 +757,30 @@ __DEV__ &&
         didScheduleLegacyUpdate: !1,
         didUsePromise: !1,
         thrownErrors: [],
-        getCurrentStack: null
+        getCurrentStack: null,
+        recentlyCreatedOwnerStacks: 0
       },
       hasOwnProperty = Object.prototype.hasOwnProperty,
       createTask = console.createTask
         ? console.createTask
         : function () {
             return null;
-          },
-      specialPropKeyWarningShown,
-      didWarnAboutOldJSXRuntime;
+          };
+    fnName = {
+      "react-stack-bottom-frame": function (callStackForError) {
+        return callStackForError();
+      }
+    };
+    var specialPropKeyWarningShown, didWarnAboutOldJSXRuntime;
     var didWarnAboutElementRef = {};
+    var unknownOwnerDebugStack = fnName["react-stack-bottom-frame"].bind(
+      fnName,
+      UnknownOwner
+    )();
+    var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
     var didWarnAboutKeySpread = {},
       didWarnAboutMaps = !1,
       userProvidedKeyEscapeRegex = /\/+/g,
-      REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"),
       reportGlobalError =
         "function" === typeof reportError
           ? reportError
@@ -1066,7 +1079,6 @@ __DEV__ &&
     exports.createElement = function (type, config, children) {
       for (var i = 2; i < arguments.length; i++)
         validateChildKeys(arguments[i]);
-      var propName;
       i = {};
       var key = null;
       if (null != config)
@@ -1107,6 +1119,7 @@ __DEV__ &&
             ? type.displayName || type.name || "Unknown"
             : type
         );
+      var propName = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return ReactElement(
         type,
         key,
@@ -1114,8 +1127,8 @@ __DEV__ &&
         void 0,
         getOwner(),
         i,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        propName ? Error("react-stack-top-frame") : unknownOwnerDebugStack,
+        propName ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
     exports.createRef = function () {
@@ -1169,6 +1182,8 @@ __DEV__ &&
     };
     exports.isValidElement = isValidElement;
     exports.jsx = function (type, config, maybeKey, source, self) {
+      var trackActualOwner =
+        1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return jsxDEVImpl(
         type,
         config,
@@ -1176,8 +1191,10 @@ __DEV__ &&
         !1,
         source,
         self,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        trackActualOwner
+          ? Error("react-stack-top-frame")
+          : unknownOwnerDebugStack,
+        trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
     exports.jsxDEV = function (
@@ -1188,6 +1205,8 @@ __DEV__ &&
       source,
       self
     ) {
+      var trackActualOwner =
+        1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return jsxDEVImpl(
         type,
         config,
@@ -1195,11 +1214,15 @@ __DEV__ &&
         isStaticChildren,
         source,
         self,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        trackActualOwner
+          ? Error("react-stack-top-frame")
+          : unknownOwnerDebugStack,
+        trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
     exports.jsxs = function (type, config, maybeKey, source, self) {
+      var trackActualOwner =
+        1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return jsxDEVImpl(
         type,
         config,
@@ -1207,8 +1230,10 @@ __DEV__ &&
         !0,
         source,
         self,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        trackActualOwner
+          ? Error("react-stack-top-frame")
+          : unknownOwnerDebugStack,
+        trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
     exports.lazy = function (ctor) {
@@ -1219,23 +1244,7 @@ __DEV__ &&
       };
     };
     exports.memo = function (type, compare) {
-      "string" === typeof type ||
-        "function" === typeof type ||
-        type === REACT_FRAGMENT_TYPE ||
-        type === REACT_PROFILER_TYPE ||
-        type === REACT_STRICT_MODE_TYPE ||
-        type === REACT_SUSPENSE_TYPE ||
-        type === REACT_SUSPENSE_LIST_TYPE ||
-        type === REACT_OFFSCREEN_TYPE ||
-        ("object" === typeof type &&
-          null !== type &&
-          (type.$$typeof === REACT_LAZY_TYPE ||
-            type.$$typeof === REACT_MEMO_TYPE ||
-            type.$$typeof === REACT_CONTEXT_TYPE ||
-            type.$$typeof === REACT_CONSUMER_TYPE ||
-            type.$$typeof === REACT_FORWARD_REF_TYPE ||
-            type.$$typeof === REACT_CLIENT_REFERENCE ||
-            void 0 !== type.getModuleId)) ||
+      null == type &&
         console.error(
           "memo: The first argument must be a component. Instead received: %s",
           null === type ? "null" : typeof type
@@ -1290,9 +1299,9 @@ __DEV__ &&
           (ReactSharedInternals.T = prevTransition);
       }
     };
-    exports.unstable_Activity = REACT_OFFSCREEN_TYPE;
+    exports.unstable_Activity = REACT_ACTIVITY_TYPE;
     exports.unstable_LegacyHidden = REACT_LEGACY_ELEMENT_TYPE;
-    exports.unstable_Scope = dynamicFlags;
+    exports.unstable_Scope = renameElementSymbol;
     exports.unstable_SuspenseList = REACT_SUSPENSE_LIST_TYPE;
     exports.unstable_TracingMarker = REACT_TRACING_MARKER_TYPE;
     exports.unstable_ViewTransition = REACT_VIEW_TRANSITION_TYPE;
@@ -1340,34 +1349,12 @@ __DEV__ &&
     exports.useDeferredValue = function (value, initialValue) {
       return resolveDispatcher().useDeferredValue(value, initialValue);
     };
-    exports.useEffect = function (
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    ) {
+    exports.useEffect = function (create, deps) {
       null == create &&
         console.warn(
           "React Hook useEffect requires an effect callback. Did you forget to pass a callback to the hook?"
         );
-      var dispatcher = resolveDispatcher();
-      if (
-        enableUseEffectCRUDOverload &&
-        ("function" === typeof update || "function" === typeof destroy)
-      )
-        return dispatcher.useEffect(
-          create,
-          createDeps,
-          update,
-          updateDeps,
-          destroy
-        );
-      if ("function" === typeof update)
-        throw Error(
-          "useEffect CRUD overload is not enabled in this build of React."
-        );
-      return dispatcher.useEffect(create, createDeps);
+      return resolveDispatcher().useEffect(create, deps);
     };
     exports.useId = function () {
       return resolveDispatcher().useId();
@@ -1418,7 +1405,7 @@ __DEV__ &&
     exports.useTransition = function () {
       return resolveDispatcher().useTransition();
     };
-    exports.version = "19.1.0-native-fb-f3c95600-20250313";
+    exports.version = "19.2.0-native-fb-63779030-20250328";
     "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
       "function" ===
         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&
