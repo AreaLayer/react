@@ -23,8 +23,6 @@ __DEV__ &&
       switch (type) {
         case REACT_FRAGMENT_TYPE:
           return "Fragment";
-        case REACT_PORTAL_TYPE:
-          return "Portal";
         case REACT_PROFILER_TYPE:
           return "Profiler";
         case REACT_STRICT_MODE_TYPE:
@@ -33,6 +31,8 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_ACTIVITY_TYPE:
+          return "Activity";
         case REACT_VIEW_TRANSITION_TYPE:
           if (enableViewTransition) return "ViewTransition";
         case REACT_TRACING_MARKER_TYPE:
@@ -46,6 +46,8 @@ __DEV__ &&
             ),
           type.$$typeof)
         ) {
+          case REACT_PORTAL_TYPE:
+            return "Portal";
           case REACT_PROVIDER_TYPE:
             if (enableRenderableContext) break;
             else return (type._context.displayName || "Context") + ".Provider";
@@ -125,6 +127,9 @@ __DEV__ &&
     function getOwner() {
       var dispatcher = ReactSharedInternals.A;
       return null === dispatcher ? null : dispatcher.getOwner();
+    }
+    function UnknownOwner() {
+      return Error("react-stack-top-frame");
     }
     function hasValidKey(config) {
       if (hasOwnProperty.call(config, "key")) {
@@ -322,6 +327,7 @@ __DEV__ &&
       REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"),
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy"),
+      REACT_ACTIVITY_TYPE = Symbol.for("react.activity"),
       REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
       REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
       REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"),
@@ -333,9 +339,19 @@ __DEV__ &&
         ? console.createTask
         : function () {
             return null;
-          },
-      specialPropKeyWarningShown;
+          };
+    React = {
+      "react-stack-bottom-frame": function (callStackForError) {
+        return callStackForError();
+      }
+    };
+    var specialPropKeyWarningShown;
     var didWarnAboutElementRef = {};
+    var unknownOwnerDebugStack = React["react-stack-bottom-frame"].bind(
+      React,
+      UnknownOwner
+    )();
+    var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
     var didWarnAboutKeySpread = {};
     exports.Fragment = REACT_FRAGMENT_TYPE;
     exports.jsxDEV = function (
@@ -346,6 +362,8 @@ __DEV__ &&
       source,
       self
     ) {
+      var trackActualOwner =
+        1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
       return jsxDEVImpl(
         type,
         config,
@@ -353,8 +371,10 @@ __DEV__ &&
         isStaticChildren,
         source,
         self,
-        Error("react-stack-top-frame"),
-        createTask(getTaskName(type))
+        trackActualOwner
+          ? Error("react-stack-top-frame")
+          : unknownOwnerDebugStack,
+        trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask
       );
     };
   })();

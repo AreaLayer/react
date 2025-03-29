@@ -3605,8 +3605,6 @@ __DEV__ &&
       switch (type) {
         case REACT_FRAGMENT_TYPE:
           return "Fragment";
-        case REACT_PORTAL_TYPE:
-          return "Portal";
         case REACT_PROFILER_TYPE:
           return "Profiler";
         case REACT_STRICT_MODE_TYPE:
@@ -3615,6 +3613,8 @@ __DEV__ &&
           return "Suspense";
         case REACT_SUSPENSE_LIST_TYPE:
           return "SuspenseList";
+        case REACT_ACTIVITY_TYPE:
+          return "Activity";
         case REACT_VIEW_TRANSITION_TYPE:
           if (enableViewTransition) return "ViewTransition";
         case REACT_TRACING_MARKER_TYPE:
@@ -3628,6 +3628,8 @@ __DEV__ &&
             ),
           type.$$typeof)
         ) {
+          case REACT_PORTAL_TYPE:
+            return "Portal";
           case REACT_PROVIDER_TYPE:
             if (enableRenderableContext) break;
             else return (type._context.displayName || "Context") + ".Provider";
@@ -4458,6 +4460,10 @@ __DEV__ &&
       onPostpone,
       formState
     ) {
+      var now = getCurrentTime();
+      1e3 < now - lastResetTime &&
+        ((ReactSharedInternals.recentlyCreatedOwnerStacks = 0),
+        (lastResetTime = now));
       resumableState = new RequestInstance(
         resumableState,
         renderState,
@@ -5588,7 +5594,7 @@ __DEV__ &&
             renderNodeDestructive(request, task, props.children, -1);
             task.keyPath = prevKeyPath$jscomp$1;
             return;
-          case REACT_OFFSCREEN_TYPE:
+          case REACT_ACTIVITY_TYPE:
             if ("hidden" !== props.mode) {
               var prevKeyPath$jscomp$2 = task.keyPath;
               task.keyPath = keyPath;
@@ -5604,17 +5610,24 @@ __DEV__ &&
             return;
           case REACT_VIEW_TRANSITION_TYPE:
             if (enableViewTransition) {
-              var _prevKeyPath4 = task.keyPath;
+              var prevKeyPath$jscomp$3 = task.keyPath;
               task.keyPath = keyPath;
-              renderNodeDestructive(request, task, props.children, -1);
-              task.keyPath = _prevKeyPath4;
+              if (null != props.name && "auto" !== props.name)
+                renderNodeDestructive(request, task, props.children, -1);
+              else {
+                var prevTreeContext = task.treeContext;
+                task.treeContext = pushTreeContext(prevTreeContext, 1, 0);
+                renderNode(request, task, props.children, -1);
+                task.treeContext = prevTreeContext;
+              }
+              task.keyPath = prevKeyPath$jscomp$3;
               return;
             }
           case REACT_SCOPE_TYPE:
-            var _prevKeyPath5 = task.keyPath;
+            var _prevKeyPath4 = task.keyPath;
             task.keyPath = keyPath;
             renderNodeDestructive(request, task, props.children, -1);
-            task.keyPath = _prevKeyPath5;
+            task.keyPath = _prevKeyPath4;
             return;
           case REACT_SUSPENSE_TYPE:
             a: if (null !== task.replay) {
@@ -5627,7 +5640,7 @@ __DEV__ &&
                 task.keyPath = _prevKeyPath;
               }
             } else {
-              var prevKeyPath$jscomp$3 = task.keyPath,
+              var prevKeyPath$jscomp$4 = task.keyPath,
                 parentBoundary = task.blockedBoundary,
                 parentPreamble = task.blockedPreamble,
                 parentHoistableState = task.hoistableState,
@@ -5708,7 +5721,7 @@ __DEV__ &&
                 } finally {
                   (task.blockedSegment = parentSegment),
                     (task.blockedPreamble = parentPreamble),
-                    (task.keyPath = prevKeyPath$jscomp$3);
+                    (task.keyPath = prevKeyPath$jscomp$4);
                 }
                 var suspendedPrimaryTask = createRenderTask(
                   request,
@@ -5785,7 +5798,7 @@ __DEV__ &&
                     (task.blockedPreamble = parentPreamble),
                     (task.hoistableState = parentHoistableState),
                     (task.blockedSegment = parentSegment),
-                    (task.keyPath = prevKeyPath$jscomp$3);
+                    (task.keyPath = prevKeyPath$jscomp$4);
                 }
                 var suspendedFallbackTask = createRenderTask(
                   request,
@@ -7961,7 +7974,7 @@ __DEV__ &&
       REACT_MEMO_TYPE = Symbol.for("react.memo"),
       REACT_LAZY_TYPE = Symbol.for("react.lazy"),
       REACT_SCOPE_TYPE = Symbol.for("react.scope"),
-      REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
+      REACT_ACTIVITY_TYPE = Symbol.for("react.activity"),
       REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
       REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
       REACT_MEMO_CACHE_SENTINEL = Symbol.for("react.memo_cache_sentinel"),
@@ -9381,7 +9394,22 @@ __DEV__ &&
       },
       callLazyInitInDEV =
         callLazyInit["react-stack-bottom-frame"].bind(callLazyInit),
-      CLIENT_RENDERED = 4,
+      lastResetTime = 0;
+    if (
+      "object" === typeof performance &&
+      "function" === typeof performance.now
+    ) {
+      var localPerformance = performance;
+      var getCurrentTime = function () {
+        return localPerformance.now();
+      };
+    } else {
+      var localDate = Date;
+      getCurrentTime = function () {
+        return localDate.now();
+      };
+    }
+    var CLIENT_RENDERED = 4,
       PENDING = 0,
       COMPLETED = 1,
       FLUSHED = 2,
@@ -9412,5 +9440,5 @@ __DEV__ &&
         'The server used "renderToString" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to "renderToReadableStream" which supports Suspense on the server'
       );
     };
-    exports.version = "19.1.0-www-classic-f3c95600-20250313";
+    exports.version = "19.2.0-www-classic-63779030-20250328";
   })();

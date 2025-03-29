@@ -20,7 +20,6 @@ var dynamicFeatureFlags = require("ReactFeatureFlags"),
     dynamicFeatureFlags.disableDefaultPropsExceptForClasses,
   enableRenderableContext = dynamicFeatureFlags.enableRenderableContext,
   enableTransitionTracing = dynamicFeatureFlags.enableTransitionTracing,
-  enableUseEffectCRUDOverload = dynamicFeatureFlags.enableUseEffectCRUDOverload,
   renameElementSymbol = dynamicFeatureFlags.renameElementSymbol,
   REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
   REACT_ELEMENT_TYPE = renameElementSymbol
@@ -39,7 +38,7 @@ var dynamicFeatureFlags = require("ReactFeatureFlags"),
   REACT_MEMO_TYPE = Symbol.for("react.memo"),
   REACT_LAZY_TYPE = Symbol.for("react.lazy"),
   REACT_SCOPE_TYPE = Symbol.for("react.scope"),
-  REACT_OFFSCREEN_TYPE = Symbol.for("react.offscreen"),
+  REACT_ACTIVITY_TYPE = Symbol.for("react.activity"),
   REACT_LEGACY_HIDDEN_TYPE = Symbol.for("react.legacy_hidden"),
   REACT_TRACING_MARKER_TYPE = Symbol.for("react.tracing_marker"),
   REACT_VIEW_TRANSITION_TYPE = Symbol.for("react.view_transition"),
@@ -548,7 +547,7 @@ exports.startTransition = function (scope, options) {
     ReactSharedInternals.T = prevTransition;
   }
 };
-exports.unstable_Activity = REACT_OFFSCREEN_TYPE;
+exports.unstable_Activity = REACT_ACTIVITY_TYPE;
 exports.unstable_LegacyHidden = REACT_LEGACY_HIDDEN_TYPE;
 exports.unstable_Scope = REACT_SCOPE_TYPE;
 exports.unstable_SuspenseList = REACT_SUSPENSE_LIST_TYPE;
@@ -585,24 +584,8 @@ exports.useDebugValue = function () {};
 exports.useDeferredValue = function (value, initialValue) {
   return ReactSharedInternals.H.useDeferredValue(value, initialValue);
 };
-exports.useEffect = function (create, createDeps, update, updateDeps, destroy) {
-  var dispatcher = ReactSharedInternals.H;
-  if (
-    enableUseEffectCRUDOverload &&
-    ("function" === typeof update || "function" === typeof destroy)
-  )
-    return dispatcher.useEffect(
-      create,
-      createDeps,
-      update,
-      updateDeps,
-      destroy
-    );
-  if ("function" === typeof update)
-    throw Error(
-      "useEffect CRUD overload is not enabled in this build of React."
-    );
-  return dispatcher.useEffect(create, createDeps);
+exports.useEffect = function (create, deps) {
+  return ReactSharedInternals.H.useEffect(create, deps);
 };
 exports.useId = function () {
   return ReactSharedInternals.H.useId();
@@ -645,7 +628,7 @@ exports.useSyncExternalStore = function (
 exports.useTransition = function () {
   return ReactSharedInternals.H.useTransition();
 };
-exports.version = "19.1.0-www-modern-f3c95600-20250313";
+exports.version = "19.2.0-www-modern-63779030-20250328";
 "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ &&
   "function" ===
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop &&
